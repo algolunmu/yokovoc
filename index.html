@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffb9d8">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>YOKOVOCO v1.7 — Pink Pocket Miku Hardware Mixer</title>
+<title>YOKOVOCO v1.9 — iOS Web MIDI Browser Compatibility</title>
 <!-- Pixel-style typography served by Google Fonts; fallback remains usable offline. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -336,9 +336,11 @@ select option{color:#541637;background:#fff4f9}
     <div class="field"><label for="input">MIDI IN (LYRIC READ)</label><select id="input"><option value="">Connect to see devices</option></select></div>
     <div class="field channel-field"><label for="channel" title="Selected channel for MIDI mixer faders. Global FX stays on Miku channel 1.">MIX CH</label><input id="channel" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="MIDI channel 1 to 16"></div>
     <button class="btn primary midi-connect-btn" id="connect">CONNECT MIDI</button>
+    <button class="btn small ghost" id="connectBasic" title="Diagnostic: discover MIDI ports without requesting SysEx">CC TEST</button>
     <button class="btn small ghost midi-refresh-btn" id="refresh" title="Refresh MIDI ports" aria-label="Refresh MIDI ports">↻</button>
   </div>
   <div class="flash-strip"><label class="checkrow"><input type="checkbox" id="autoFlash" checked> AUTO READ FLASH 01–15</label><span id="flashSummary" role="status" aria-live="polite">Connect MIDI IN + OUT to load Miku's stored lyrics.</span></div>
+  <div class="statusnote" style="font-size:11px;margin:5px 0 0">On iPhone: in <b>Web MIDI Browser settings</b>, enable <b>SysEx</b>, then tap <b>CONNECT MIDI</b>. If nothing appears, tap <b>CC TEST</b> and inspect the log in <b>MIDI + Help</b>. CC TEST alone cannot send FX SysEx.</div>
 </section>
 <nav class="tabs" aria-label="App sections"><button class="tab current" data-tab="fx">Mixer Desk</button><button class="tab" data-tab="lyrics">Lyrics 00–15</button><button class="tab" data-tab="presets">Preset Library</button><button class="tab" data-tab="settings">MIDI + Help</button></nav>
 <section id="page-fx" class="page current">
@@ -407,7 +409,7 @@ select option{color:#541637;background:#fff4f9}
   </div>
   <div class="card"><div class="section-label">Diagnostics</div><p class="sub">Logs MIDI sent and incoming device replies. No data is uploaded to a server.</p><div id="log" class="log" role="log" aria-live="polite"></div><div class="buttons" style="margin-top:10px"><button class="btn small" id="clearLog">Clear log</button><button class="btn small" id="copyLog">Copy log</button></div></div>
  </div>
- <div class="card"><div class="section-label">How to run on iPad 6</div><p class="sub" style="margin-top:12px">Use an iOS browser that implements Web MIDI with SysEx. Ordinary Safari support varies; test with your MIDIWeb browser. For reliable permissions, host this file at an HTTPS address (for example GitHub Pages), then open it in the browser and press Connect MIDI.</p>
+ <div class="card"><div class="section-label">How to run on iPad 6</div><p class="sub" style="margin-top:12px">Use an iOS browser that implements Web MIDI with SysEx. Ordinary Safari support varies; test with the Web MIDI Browser app by Takashi Mizuhiki. For reliable permissions, host this file at an HTTPS address (for example GitHub Pages), then open it in the browser and press Connect MIDI.</p>
  <p class="help"><strong>Suggested routing:</strong> iPad 6 → Lightning USB host adapter → H2MIDI → Pocket Miku. Select the actual output port, not a disconnected virtual port. Avoid sending FX SysEx while Xequence's clock is running until you've tested stability.</p>
  <p class="help"><strong>Supported:</strong> CC1, CC7, CC10 on GM channels, CC11, CC91, CC93 and CC94 (system variation), XG processor choice, supported drive/threshold and fixed-combination parameters, slot 00–15 lyric writing/reading, user presets and JSON backup. <strong>Limitation:</strong> Per-channel settings are stored locally and are not read back from Miku. The insertion effect targets Miku channel 1 regardless of the selected mixer channel. Miku has one selectable XG Variation algorithm at a time; internal multi-stage combinations are fixed order. Unsupported individual controls are disabled. Real NSX-39 testing is still necessary for specific optional algorithms and effect timing.</p>
  </div>
@@ -737,27 +739,91 @@ function scheduleAutoFlashRead(){
  scanTimer=setTimeout(()=>{if(output?.id+'|'+input?.id!==route)return;lastAutoRoute=route;void readAllFlash({automatic:true});},400);
 }
 function onMidi(e){const bytes=Array.from(e.data);if(bytes.length<7||bytes[0]!==0xF0||bytes.slice(1,5).join(',')!=='67,121,9,17')return;const op=bytes[5];log(`RX NSX-39 reply: ${hex(bytes)}`,'good');if(op===0x1F&&pendingRead){const req=pendingRead;pendingRead=null;clearTimeout(req.timer);const length=bytes[6];if(bytes.length<8+length){req.reject(Error(`Incomplete lyric response for slot ${String(req.slot).padStart(2,'0')}.`));return;}const values=bytes.slice(7,7+length).filter(v=>v>=0&&v<128);const text=decodeLyrics(values);store.slots[req.slot]={...store.slots[req.slot],text};save();if(store.selected===req.slot)refreshLyric();req.resolve({slot:req.slot,length:values.length,text});}else if(op===0x1E){log(`Active lyric slot ${bytes[6]}, position ${bytes[7]}`,'good');}else if(op===0x21){log(`Flash write status: ${bytes[6]===0?'complete':bytes[6]===1?'busy':'error'}`,bytes[6]===2?'err':'good');}}
+// iOS browser bridges may leave a SysEx permission request pending. Show progress
+// promptly, cap the wait, and expose a CC-only diagnostic to isolate the issue.
 let connectionPromise=null;
-async function connectMidi(){if(connectionPromise)return connectionPromise;
+async function midiPermissionRequest(opts){
+ let timer;
+ try{return await Promise.race([
+   navigator.requestMIDIAccess(opts),
+   new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('MIDI permission request timed out (12 seconds)')),12000);})
+ ]);}finally{clearTimeout(timer);}
+}
+async function connectMidi(forceBasic=false){
+ if(connectionPromise){log('A MIDI permission request is still in progress.','err');return connectionPromise;}
+ const requestBasic=forceBasic===true;
+ $('connStatus').textContent=requestBasic?'Testing CC MIDI…':'Requesting MIDI + SysEx…';
+ $('connect').textContent='CONNECTING…';
  connectionPromise=(async()=>{
- if(!navigator.requestMIDIAccess){$('connStatus').textContent='Web MIDI unavailable';log('No Web MIDI API. Open this site in MIDIWeb or another Web MIDI/SysEx capable browser over HTTPS.','err');return;}
- try{midi=await navigator.requestMIDIAccess({sysex:true});sysexAllowed=!!midi.sysexEnabled;log('Web MIDI connected with SysEx permission.','good');}
- catch(e){log(`SysEx permission: ${e.message}. Trying CC-only.`, 'err');try{midi=await navigator.requestMIDIAccess({sysex:false});sysexAllowed=false;}catch(err){log(`MIDI permission denied: ${err.message}`,'err');$('connStatus').textContent='Permission required';return;}}
- midi.onstatechange=()=>populatePorts();populatePorts();$('connect').textContent='MIDI CONNECTED';
- })();try{await connectionPromise;}finally{connectionPromise=null;}
+ if(window.isSecureContext===false){log('This page is not a secure context. Open the HTTPS GitHub Pages URL, not a GitHub file preview.','err');}
+ if(typeof navigator.requestMIDIAccess!=='function'){
+  $('connStatus').textContent='Web MIDI API missing';
+  log('navigator.requestMIDIAccess is not available in this browser tab. Open the HTTPS GitHub Pages URL inside Web MIDI Browser by Takashi Mizuhiki. In the app settings, enable SysEx permission.','err');
+  return;
+ }
+ const ask=async sysex=>{
+  log(`Requesting Web MIDI (${sysex?'with SysEx':'CC only'})…`);
+  return await midiPermissionRequest({sysex});
+ };
+ try{
+  if(requestBasic){midi=await ask(false);sysexAllowed=false;}
+  else{
+   try{midi=await ask(true);sysexAllowed=(typeof midi.sysexEnabled==='boolean')?midi.sysexEnabled:true; if(typeof midi.sysexEnabled!=='boolean')log('Browser did not expose sysexEnabled; treating successful SysEx request as enabled.');}
+   catch(e){
+    log(`SysEx request failed: ${e.name||'Error'}: ${e.message}. Trying basic MIDI.`, 'err');
+    $('connStatus').textContent='SysEx unavailable; trying CC…';
+    midi=await ask(false);sysexAllowed=false;
+   }
+  }
+ }catch(err){
+  log(`MIDI connection failed: ${err.name||'Error'}: ${err.message}`, 'err');
+  $('connStatus').textContent='MIDI request failed — see log';
+  return;
+ }
+ try{
+   midi.onstatechange=()=>{try{populatePorts()}catch(e){log('MIDI port update failed: '+e.message,'err');}};
+   populatePorts();
+   const countOut=enumeratePorts(midi.outputs).filter(p=>p&&p.state!=='disconnected').length;
+   const countIn=enumeratePorts(midi.inputs).filter(p=>p&&p.state!=='disconnected').length;
+   log(`MIDI bridge OK: ${countOut} outputs / ${countIn} inputs, SysEx ${sysexAllowed?'ON':'OFF'}.`,countOut?'good':'err');
+   if(!countOut){$('connStatus').textContent='MIDI connected; NO OUTPUT PORTS';log('No output ports detected by iOS. Check that the H2MIDI appears in another MIDI app and that Lightning USB data is connected.','err');}
+   else if(!sysexAllowed){$('connStatus').textContent=`${countOut} OUT / ${countIn} IN · CC ONLY`;log('CC TEST can discover devices, but YOKOVOCO effects/lyric SysEx require full CONNECT MIDI permission.','err');}
+   else $('connStatus').textContent=`${countOut} OUT / ${countIn} IN · SYSEX`;
+   $('connect').textContent='RECONNECT MIDI';
+ }catch(err){
+   log(`MIDI enumeration failed: ${err.name||'Error'}: ${err.message}`,'err');
+   $('connStatus').textContent='Port listing error — see log';
+ }
+ })();try{await connectionPromise;}finally{connectionPromise=null;if($('connect').textContent==='CONNECTING…')$('connect').textContent='CONNECT MIDI';}
+}
+// Some older iOS Web MIDI bridges return a MIDIPortMap with incomplete Map methods.
+function enumeratePorts(collection){
+ if(!collection)return [];
+ try{if(typeof collection.values==='function')return Array.from(collection.values());}catch(e){log('Port iterator error: '+e.message,'err');}
+ if(Array.isArray(collection))return collection;
+ const ports=[];
+ if(typeof collection.forEach==='function'){
+  try{collection.forEach(p=>ports.push(p));return ports;}catch(e){log('Port forEach error: '+e.message,'err');}
+ }
+ return ports;
+}
+function portById(collection,id){
+ if(!id)return null;
+ try{if(collection&&typeof collection.get==='function')return collection.get(id)||null;}catch(e){}
+ return enumeratePorts(collection).find(p=>p&&p.id===id)||null;
 }
 function populatePorts(){if(!midi)return;
  const out=$('output'),inp=$('input'),priorOut=output?.id||'',priorIn=input?.id||'';
  const oldOut=out.value||store.outputId||'',oldIn=inp.value||store.inputId||'';
- const outputs=[...midi.outputs.values()].filter(p=>p.state==='connected');
- const inputs=[...midi.inputs.values()].filter(p=>p.state==='connected');
+ const outputs=enumeratePorts(midi.outputs).filter(p=>p&&p.state!=='disconnected');
+ const inputs=enumeratePorts(midi.inputs).filter(p=>p&&p.state!=='disconnected');
  out.innerHTML='<option value="">Choose MIDI output…</option>';inp.innerHTML='<option value="">Choose MIDI input…</option>';
  for(const p of outputs)out.add(new Option(p.name||'Unnamed MIDI out',p.id));
  for(const p of inputs)inp.add(new Option(p.name||'Unnamed MIDI in',p.id));
  if(outputs.some(p=>p.id===oldOut))out.value=oldOut;else if(outputs.length===1)out.value=outputs[0].id;
  if(inputs.some(p=>p.id===oldIn))inp.value=oldIn;else if(inputs.length===1)inp.value=inputs[0].id;
- output=midi.outputs.get(out.value)||null;input=midi.inputs.get(inp.value)||null;
- for(const port of midi.inputs.values())port.onmidimessage=null;
+ output=portById(midi.outputs,out.value);input=portById(midi.inputs,inp.value);
+ for(const port of enumeratePorts(midi.inputs))port.onmidimessage=null;
  if(input)input.onmidimessage=onMidi;
  if(priorOut!==output?.id||priorIn!==input?.id){cancelRead('MIDI route changed');lastAutoRoute='';}
  store.outputId=out.value;store.inputId=inp.value;save();
@@ -775,7 +841,7 @@ function download(name,content,mime){const blob=new Blob([content],{type:mime});
 function renderChain(){}
 function initChain(){}
 
-function init(){initChain();document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>setPage(el.dataset.tab)));initFx();$('connect').onclick=connectMidi;$('testDist').onclick=()=>diagnoseFx('dist');$('testComp').onclick=()=>diagnoseFx('comp');$('refresh').onclick=()=>midi?populatePorts():connectMidi();$('output').onchange=populatePorts;$('input').onchange=populatePorts;$('autoFlash').onchange=()=>{if($('autoFlash').checked){lastAutoRoute='';scheduleAutoFlashRead();}else{clearTimeout(scanTimer);setFlashSummary('AUTOMATIC FLASH READ OFF. Manual read remains available in Lyrics.');}};$('channel').value=store.channel;$('channel').onchange=()=>switchMixerChannel($('channel').value);$('sendAll').onclick=()=>queueMidi(()=>[...reverbMessages(),...chorusMessages(),...variationMessages(),...liveCcMessages()],'Resynced all current FX settings.');$('syncPart').onclick=()=>queueMidi(()=>liveCcMessages(),`Applied stored MIDI CC values for CH ${store.channel}.`);$('audition').onclick=()=>{const note=69,channel=store.channel-1;if(send([0x90+channel,note,90],'Test note A4'))setTimeout(()=>send([0x80+channel,note,0],'Test note off'),320);};$('panic').onclick=()=>send(cc(123,0),'All notes off CC123');$('lyricText').addEventListener('input',()=>{commitLyric();updatePreview();});$('slotName').addEventListener('input',commitLyric);$('writeSlot').onclick=writeSlot;$('selectSlot').onclick=selectHardwareSlot;$('rewindSlot').onclick=()=>{if(send(miku(0x0D,0x09,0x02,0x00,0x00),'Rewind lyric position'))tell('lyricStatus','Rewound to first phoneme.');};$('readSlot').onclick=readHardwareSlot;$('readAll').onclick=readAllFlash;$('requestStatus').onclick=()=>send(miku(0x0E),'Request current lyric position');$('savePreset').onclick=saveNewPreset;$('mainSave').onclick=saveNewPreset;$('mainLoad').onclick=()=>loadPresetById($('mainPresetSelect').value);$('mainOverwrite').onclick=()=>{const p=store.presets.find(x=>x.id===$('mainPresetSelect').value);if(!p){tell('fxStatus','Choose a saved preset to overwrite.');return;}if(!confirm('Overwrite your preset “'+p.name+'” with these settings?'))return;p.fx=clone(store.fx);p.channels=clone(store.channels);save();showPresets();$('mainPresetSelect').value=p.id;tell('fxStatus','OVERWRITTEN / '+p.name);};$('exportBackup').onclick=()=>download('yokovoco-backup.json',JSON.stringify({version:1,exported:new Date().toISOString(),fx:store.fx,channels:store.channels,slots:store.slots,presets:store.presets},null,2),'application/json');$('importBackup').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.slots)||data.slots.length!==16||!Array.isArray(data.presets))throw Error('Not a valid YOKOVOCO backup.');if(!confirm('Import this backup and replace your local presets and lyrics?'))return;store.slots=data.slots.map(s=>({name:String(s.name||'').slice(0,40),text:String(s.text||'').slice(0,400)}));store.presets=data.presets.filter(p=>p&&typeof p.name==='string'&&typeof p.fx==='object').map(p=>({id:String(p.id||`import-${Date.now()}`),name:p.name.slice(0,70),fx:{...defaultFx,...p.fx},channels:Array.isArray(p.channels)&&p.channels.length===16?p.channels.map(c=>({...initialPart(),...(c||{})})):undefined,factory:false}));store.fx={...defaultFx,...data.fx,variationRoute:'SYSTEM'};if(store.fx.variationType==='distHard')store.fx.variationType='dist';if(Array.isArray(data.channels)&&data.channels.length===16)store.channels=data.channels.map(c=>({...initialPart(),...(c||{})}));else{const cp=currentPart();for(const key of PART_KEYS)if(key!=='variationSend'&&data.fx?.[key]!==undefined)cp[key]=data.fx[key];}loadPartToFx();if(!Array.isArray(store.fx.chain))store.fx.chain=[];save();refreshFx();renderChain();refreshLyric();showPresets();log('Library import succeeded.','good');}catch(err){alert(`Import failed: ${err.message}`);}e.target.value='';};$('clearLog').onclick=()=>{$('log').innerHTML='';midiLog.length=0};$('copyLog').onclick=async()=>{try{await navigator.clipboard.writeText(midiLog.join('\n'));}catch(_){alert('Could not copy. Select the log text manually.');}};refreshLyric();showPresets();log('YOKOVOCO v1.8 ready. Select MIDI IN / OUT at top. Flash read begins automatically with a valid return path.');if(store.outputId||store.inputId){setTimeout(()=>void connectMidi(),0);}if(phonemes.length!==128)log(`Internal phoneme table error: ${phonemes.length} entries`,'err');}
+function init(){initChain();document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>setPage(el.dataset.tab)));initFx();$('connect').onclick=()=>connectMidi();$('connectBasic').onclick=()=>connectMidi(true);$('testDist').onclick=()=>diagnoseFx('dist');$('testComp').onclick=()=>diagnoseFx('comp');$('refresh').onclick=()=>midi?populatePorts():connectMidi();$('output').onchange=populatePorts;$('input').onchange=populatePorts;$('autoFlash').onchange=()=>{if($('autoFlash').checked){lastAutoRoute='';scheduleAutoFlashRead();}else{clearTimeout(scanTimer);setFlashSummary('AUTOMATIC FLASH READ OFF. Manual read remains available in Lyrics.');}};$('channel').value=store.channel;$('channel').onchange=()=>switchMixerChannel($('channel').value);$('sendAll').onclick=()=>queueMidi(()=>[...reverbMessages(),...chorusMessages(),...variationMessages(),...liveCcMessages()],'Resynced all current FX settings.');$('syncPart').onclick=()=>queueMidi(()=>liveCcMessages(),`Applied stored MIDI CC values for CH ${store.channel}.`);$('audition').onclick=()=>{const note=69,channel=store.channel-1;if(send([0x90+channel,note,90],'Test note A4'))setTimeout(()=>send([0x80+channel,note,0],'Test note off'),320);};$('panic').onclick=()=>send(cc(123,0),'All notes off CC123');$('lyricText').addEventListener('input',()=>{commitLyric();updatePreview();});$('slotName').addEventListener('input',commitLyric);$('writeSlot').onclick=writeSlot;$('selectSlot').onclick=selectHardwareSlot;$('rewindSlot').onclick=()=>{if(send(miku(0x0D,0x09,0x02,0x00,0x00),'Rewind lyric position'))tell('lyricStatus','Rewound to first phoneme.');};$('readSlot').onclick=readHardwareSlot;$('readAll').onclick=readAllFlash;$('requestStatus').onclick=()=>send(miku(0x0E),'Request current lyric position');$('savePreset').onclick=saveNewPreset;$('mainSave').onclick=saveNewPreset;$('mainLoad').onclick=()=>loadPresetById($('mainPresetSelect').value);$('mainOverwrite').onclick=()=>{const p=store.presets.find(x=>x.id===$('mainPresetSelect').value);if(!p){tell('fxStatus','Choose a saved preset to overwrite.');return;}if(!confirm('Overwrite your preset “'+p.name+'” with these settings?'))return;p.fx=clone(store.fx);p.channels=clone(store.channels);save();showPresets();$('mainPresetSelect').value=p.id;tell('fxStatus','OVERWRITTEN / '+p.name);};$('exportBackup').onclick=()=>download('yokovoco-backup.json',JSON.stringify({version:1,exported:new Date().toISOString(),fx:store.fx,channels:store.channels,slots:store.slots,presets:store.presets},null,2),'application/json');$('importBackup').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.slots)||data.slots.length!==16||!Array.isArray(data.presets))throw Error('Not a valid YOKOVOCO backup.');if(!confirm('Import this backup and replace your local presets and lyrics?'))return;store.slots=data.slots.map(s=>({name:String(s.name||'').slice(0,40),text:String(s.text||'').slice(0,400)}));store.presets=data.presets.filter(p=>p&&typeof p.name==='string'&&typeof p.fx==='object').map(p=>({id:String(p.id||`import-${Date.now()}`),name:p.name.slice(0,70),fx:{...defaultFx,...p.fx},channels:Array.isArray(p.channels)&&p.channels.length===16?p.channels.map(c=>({...initialPart(),...(c||{})})):undefined,factory:false}));store.fx={...defaultFx,...data.fx,variationRoute:'SYSTEM'};if(store.fx.variationType==='distHard')store.fx.variationType='dist';if(Array.isArray(data.channels)&&data.channels.length===16)store.channels=data.channels.map(c=>({...initialPart(),...(c||{})}));else{const cp=currentPart();for(const key of PART_KEYS)if(key!=='variationSend'&&data.fx?.[key]!==undefined)cp[key]=data.fx[key];}loadPartToFx();if(!Array.isArray(store.fx.chain))store.fx.chain=[];save();refreshFx();renderChain();refreshLyric();showPresets();log('Library import succeeded.','good');}catch(err){alert(`Import failed: ${err.message}`);}e.target.value='';};$('clearLog').onclick=()=>{$('log').innerHTML='';midiLog.length=0};$('copyLog').onclick=async()=>{try{await navigator.clipboard.writeText(midiLog.join('\n'));}catch(_){alert('Could not copy. Select the log text manually.');}};refreshLyric();showPresets();log('YOKOVOCO v1.9 iOS ready. Enable SysEx in Web MIDI Browser settings, then tap CONNECT MIDI. CC TEST checks basic discovery.');/* iOS: MIDI permissions must be requested from an explicit button tap, not page-load auto-connect. */if(phonemes.length!==128)log(`Internal phoneme table error: ${phonemes.length} entries`,'err');}
 init();
 </script>
 </body></html>
