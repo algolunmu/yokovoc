@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffb9d8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>YOKOVOCO v1.9.2 — iOS Web MIDI Browser Compatibility</title>
+<!-- Pixel-style typography served by Google Fonts; fallback remains usable offline. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;color:#fff8fb;background:#310d28;font-size:14px;--panel:#682746;--panel2:#8e3c62;--line:#f7b4ce;--muted:#f5c9db;--aqua:#ffc0da;--pink:#ffc1d8;--warn:#ffd590;--white:#fff9fc;--rose:#ec8bad;--dark:#270a21;--wine:#541938}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;padding-bottom:30px;background-color:#310d28;background-image:linear-gradient(90deg,rgba(255,192,216,.045) 1px,transparent 1px),linear-gradient(rgba(255,192,216,.045) 1px,transparent 1px),linear-gradient(140deg,#431331,#25091f);background-size:22px 22px,22px 22px,auto}
+button,input,select,textarea{font:inherit}button{cursor:pointer;touch-action:manipulation}button:disabled{cursor:not-allowed;opacity:.42}
+button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px dashed #fff;outline-offset:3px}
+.wrap{max-width:1190px;margin:auto;padding:22px 22px 60px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px;padding:24px;background:linear-gradient(145deg,#7e2858,#4a1236);border:3px solid #ffe8f0;box-shadow:8px 8px 0 #20071b,inset 0 0 0 4px #b75b85}
+.logo{font-family:"Courier New",monospace;font-size:clamp(32px,5.2vw,62px);font-weight:1000;letter-spacing:-.06em;line-height:.95;color:var(--white);text-shadow:4px 4px 0 #a84573,8px 8px 0 #2e0c24}.logo .star{color:#ffc4d7}.tagline{margin-top:15px;color:#fff0f6;font-size:.78rem;letter-spacing:.12em;font-weight:700;text-transform:uppercase}.micro{font-size:.76rem;color:var(--muted)}
+.connection{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.pill{display:inline-flex;align-items:center;gap:9px;background:#48102e;border:2px solid #b86e92;color:#ffe4ef;padding:11px 13px;border-radius:0;font-size:.81rem;font-weight:700}.dot{width:10px;height:10px;background:#f3a873;box-shadow:2px 2px 0 #290b21}.dot.on{background:#d7ffdb}
+.btn{border:2px solid #ffdaeb;border-radius:0;background:#874063;color:#fff9fc;padding:10px 13px;min-height:45px;font-size:.84rem;letter-spacing:.01em;font-weight:800;box-shadow:3px 3px 0 #26091f;transition:transform .07s,box-shadow .07s}.btn:hover{background:#a64c73}.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 #26091f}.btn.primary{background:#ffc4da;color:#4a1531;border-color:#ffedf4}.btn.primary:hover{background:#ffe3ed}.btn.pink{background:#ed83ad;color:#330b23;border-color:#fff}.btn.warn{border-color:#ffdda9;color:#fff1c3}.btn.small{padding:7px 10px;min-height:37px;font-size:.78rem}.btn.ghost{background:transparent}.buttons{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.tabs{display:flex;gap:7px;overflow-x:auto;padding:4px 4px 10px 0;margin-bottom:19px;border-bottom:3px solid #bd7297}.tab{border:2px solid #a4587f;min-height:45px;white-space:nowrap;padding:0 16px;background:#47152f;color:#efb3ce;font-size:.79rem;text-transform:uppercase;font-weight:900;border-radius:0}.tab.current{background:#ffd1e1;border-color:#fff3f8;color:#521c39;box-shadow:3px 3px 0 #9c3969}.page{display:none}.page.current{display:block}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}.card{border:2px solid #f6b5d0;background:linear-gradient(180deg,#6b294d,#4d1939);padding:18px;min-width:0;margin-bottom:19px;box-shadow:5px 5px 0 #22071b;position:relative}.card h2,.card h3{font-size:1.03rem;letter-spacing:.01em;margin:0 0 6px}.sub{color:#f5cada;font-size:.82rem;line-height:1.6;margin:5px 0 14px}.cardheader{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}.section-label{font-size:.84rem;letter-spacing:.09em;color:#fff3f8;font-weight:950;text-transform:uppercase;background:#9e4a71;padding:7px 9px;display:inline-block;box-shadow:3px 3px 0 #391025}
+.control{display:block;margin-bottom:14px}.control:last-child{margin-bottom:0}.ctrlhead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px}.ctrlhead label{font-size:.82rem;font-weight:750}.num{font-size:.89rem;background:#3c102d;border:2px solid #c4809f;padding:4px 8px;min-width:45px;text-align:center;color:#ffebf3;font-variant-numeric:tabular-nums}
+input[type=range]{display:block;width:100%;accent-color:#ffbad4;min-height:31px;cursor:pointer;margin:0}select,input[type=number],input[type=text],textarea{width:100%;padding:11px 12px;min-height:44px;border-radius:0;background:#341129;border:2px solid #d791b2;color:#fff8fb}select{cursor:pointer}.checkrow{display:flex;align-items:center;gap:9px;color:#ffd9e8;font-size:.84rem}.checkrow input{width:19px;height:19px;accent-color:#f9a6c6}.inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.inline select{width:auto;max-width:100%}.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.cols2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field label{display:block;margin-bottom:7px;font-size:.82rem;font-weight:800}.help{font-size:.8rem;color:#f9d3e1;line-height:1.6}.alert{border:2px solid #e5a76d;background:#5e2c3b;color:#ffebd6;padding:12px 13px;font-size:.82rem;line-height:1.5;margin:12px 0}.okay{border-color:#d5f6cc;background:#3d4939;color:#f0ffeb}
+.slots{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-bottom:17px}.slot{border-radius:0;border:2px solid #dda2bf;background:#762f55;color:#fff;min-height:54px;font-weight:950;position:relative;box-shadow:3px 3px 0 #320b25}.slot.active{border-color:#fff;color:#4e1736;background:#ffd3e3}.slot:after{content:'';height:6px;width:6px;background:#ffd2aa;position:absolute;bottom:5px;right:5px;opacity:0}.slot.filled:after{opacity:1}.slot.active:after{background:#a6446e}
+textarea{resize:vertical;min-height:100px;line-height:1.65}.preview{padding:12px;background:#2d0b23;border:2px solid #ba7095;color:#ffe1ed;white-space:pre-wrap;word-break:break-word;min-height:46px;font-size:.77rem;font-family:ui-monospace,Menlo,monospace}.caption{font-size:.75rem;color:var(--muted)}
+.presetgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.presetcard{border:2px solid #edabc8;background:#692b4d;padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:135px;box-shadow:4px 4px 0 #270a1f}.presetcard strong{display:block;font-size:.92rem}.presetcard small{font-size:.75rem;color:#ffd7e7}.presetcard .buttons{gap:6px}.presetcard .btn{font-size:.75rem;min-height:36px;padding:6px 8px}
+.log{height:190px;overflow:auto;background:#28091f;border:2px solid #bf779c;padding:10px 12px;font-size:.74rem;white-space:pre-wrap;line-height:1.6;color:#ffe0ef}.log .err{color:#ffcc9a}.log .good{color:#d9ffcf}
+.chain-stages{display:flex;flex-direction:column;gap:13px;margin:16px 0}.stage{border:2px solid #dfa0bf;background:#501a38;padding:14px;box-shadow:3px 3px 0 #310921}.stage-top{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}.stage-title{font-weight:900}.stage-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:13px}.stage-controls .control{margin:0}.stage-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.stage .checkrow{color:#ffcfdf}.stage.by-passed{opacity:.6}.chain-empty{padding:25px;border:2px dashed #d598b4;text-align:center;color:#f1bfd2}.footer{margin:22px 0 0;padding:14px 3px;color:#efb9d1;font-size:.76rem;line-height:1.7}.footer a{color:#fff8fc}.hidden{display:none!important}.statusnote{min-height:24px;color:#ffe5f0;font-size:.83rem;margin-top:9px}.spacer{height:6px}
+/* Pixel workstation panel */
+.pixel-banner{display:flex;align-items:center;gap:12px;margin-bottom:16px}.pixel-symbol{width:45px;height:45px;flex:none;background:#ffc9de;color:#581634;border:3px solid #fff;box-shadow:4px 4px 0 #330b25;display:grid;place-items:center;font-size:26px;font-weight:950}.pixel-kicker{color:#ffd5e4;text-transform:uppercase;font-size:.7rem;font-weight:900;letter-spacing:.17em}
+.rack-display{border:3px solid #fbd3e4;background:#2b0b22;padding:14px;margin:14px 0;box-shadow:inset 0 0 0 4px #581e3f;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.rack-display .routename{font-size:1.15rem;color:#ffe1ef;font-weight:950;text-transform:uppercase}.rack-display .small{font-size:.75rem;color:#f6aacb}
+.quick-fx{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.fxkey{border:2px solid #eeb5cd;background:#51203c;color:#ffdfec;min-height:64px;text-align:center;font-weight:900;font-size:.8rem;letter-spacing:.03em;box-shadow:3px 3px 0 #2a0a20}.fxkey.active{background:#ffd0e2;color:#541b3a;border-color:#fff}.fxkey small{display:block;font-size:.66rem;margin-top:5px;color:inherit;opacity:.85}
+.fader-rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:9px;padding:13px 5px 5px;border:2px dashed #ac678a;background:#551c3b}.fader{display:flex;align-items:center;flex-direction:column;margin:0;min-width:0;gap:6px}.fader .ctrlhead{display:contents}.fader .ctrlhead label{order:3;font-size:.75rem;text-align:center;min-height:32px;line-height:1.1;color:#ffe5f0}.fader .num{order:2;min-width:55px;padding:6px 4px;background:#321026;border-color:#da92b0;font-size:.84rem}.fader .fader-travel{order:1;display:flex;justify-content:center;align-items:center;height:167px;width:62px;position:relative;background:linear-gradient(90deg,#43152f 44%,#aa6788 45%,#aa6788 54%,#43152f 55%);border:2px solid #9c547a}.fader input[type=range]{height:26px;width:149px;min-height:0;max-width:none;position:absolute;transform:rotate(-90deg);accent-color:#fff0f7;cursor:pointer}
+.fader input[type=range]::-webkit-slider-thumb{appearance:none;width:24px;height:34px;border-radius:0;background:#ffd8e7;border:3px solid #fff;box-shadow:2px 2px 0 #4b102f}.fader input[type=range]::-moz-range-thumb{width:24px;height:30px;border:3px solid #fff;border-radius:0;background:#ffd8e7}
+.preset-dock{border:2px solid #ffd3e4;padding:12px;background:#713151;display:grid;grid-template-columns:minmax(155px,1fr) auto;align-items:end;gap:12px;box-shadow:4px 4px 0 #27091e;margin-bottom:18px}.preset-dock .field label{margin:0 0 7px}.preset-dock .buttons{justify-content:flex-end}.muted-note{font-size:.73rem;color:#f5c6d9}.mode-notice{font-weight:800;color:#ffe4f0;line-height:1.5;font-size:.8rem}.bpm-chip{display:flex;gap:7px;align-items:center;max-width:270px;margin-bottom:12px}.bpm-chip label{white-space:nowrap;font-size:.8rem;font-weight:900}.bpm-chip input{min-width:85px}.read-progress{min-height:20px;font-size:.83rem;color:#ffd5e5;font-weight:700}
+@media(max-width:830px){.wrap{padding:14px 11px 40px}.grid{grid-template-columns:1fr}.card{padding:14px}.top{padding:18px}.presetgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.quick-fx{grid-template-columns:repeat(2,minmax(0,1fr))}.fader-rack{grid-template-columns:repeat(3,minmax(0,1fr))}.cols3,.cols2{grid-template-columns:1fr 1fr}.slots{grid-template-columns:repeat(4,minmax(0,1fr))}.preset-dock{grid-template-columns:1fr}.preset-dock .buttons{justify-content:flex-start}.tab{font-size:.7rem;padding:0 11px}.logo{font-size:38px}}
+@media(max-width:390px){.cols2,.cols3{grid-template-columns:1fr}.presetgrid{grid-template-columns:1fr}.fader-rack{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+.processor-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:8px 0}.processor-unit{min-height:88px;border:2px solid #e4b0c9;background:#47172f;padding:11px 8px;text-align:center;opacity:.42}.processor-unit.active{background:#9c476f;border-color:#ffdaea;opacity:1}.processor-unit strong{display:block;color:#fff9fc;font-size:.78rem;margin-bottom:9px}.processor-unit span{display:block;color:#ffd9e8;font-size:.72rem;line-height:1.4}.parameter-deck{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:15px;padding:12px;border:2px dashed #b66e93}.parameter-deck .control{margin:0}.parameter-deck .control.inactive{opacity:.38}.parameter-deck input[type=range]:disabled{cursor:not-allowed;filter:grayscale(1)}.algorithm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.alg-button{border:2px solid #dca2bc;background:#491730;color:#ffe7ef;min-height:87px;padding:10px 8px;box-shadow:3px 3px 0 #280b20;font-size:.79rem;text-align:left;cursor:pointer}.alg-button.active{border-color:#fff;background:#ffd0e2;color:#40142b}.alg-button strong{display:block;margin-bottom:6px}.alg-button small{font-size:.68rem;opacity:.82}.alg-button:focus-visible{outline:3px solid #fff;outline-offset:2px}@media(max-width:700px){.algorithm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:410px){.parameter-deck{grid-template-columns:1fr}}
+
+/* YOKOVOCO 0.7: 8-bit candy pink skin. Only visual styles: MIDI logic/presets unchanged. */
+:root{
+  font-family:"Pixelify Sans",ui-monospace,Menlo,monospace;
+  font-size:17px;
+  color:#51132f;
+  background:#ffd7e8;
+  --panel:#ffd9ea;--panel2:#ffbad5;--line:#a52a66;
+  --muted:#80415f;--aqua:#ff86b8;--pink:#ff7cae;
+  --warn:#b53c54;--white:#fff9fc;--rose:#f15f9c;
+  --dark:#50142f;--wine:#5b1539;
+}
+body{
+  color:#51132f;
+  background-color:#ffd8ea;
+  background-image:
+   linear-gradient(90deg,rgba(172,45,106,.095) 1px,transparent 1px),
+   linear-gradient(rgba(172,45,106,.095) 1px,transparent 1px),
+   linear-gradient(150deg,#ffb9d8 0%,#ffe4ef 58%,#ffcae0 100%);
+  background-size:20px 20px,20px 20px,auto;
+}
+.wrap{max-width:1200px}
+button,input,select,textarea{font-family:"Pixelify Sans",ui-monospace,monospace;letter-spacing:.018em}
+button{font-weight:700}
+.logo,
+.section-label,.pixel-kicker{
+  font-family:"Press Start 2P","Pixelify Sans",monospace;
+  letter-spacing:0;
+  font-weight:400;
+}
+.logo{
+  font-size:clamp(23px,3.5vw,39px);
+  line-height:1.35;
+  color:#fff9fc;
+  text-shadow:3px 3px 0 #a52967,6px 6px 0 #62163e;
+  letter-spacing:-.045em;
+}
+.logo .star{color:#fff6a8}
+.top{
+  background:linear-gradient(145deg,#ff91be 0%,#ef5c9e 100%);
+  color:#541333;
+  border:4px solid #6a1944;
+  box-shadow:7px 7px 0 #852653,inset 0 0 0 4px #ffd5e7;
+}
+.tagline{color:#5b173a;font-size:.88rem;letter-spacing:.05em}
+.micro,.caption,.muted-note{color:#6f3051}
+.pill{background:#fff5f9;color:#5d183a;border:2px solid #7a2450;font-size:.95rem}
+.dot{background:#b64569;box-shadow:2px 2px 0 #fff}
+.dot.on{background:#29b87c;box-shadow:2px 2px 0 #7a2450}
+.btn{
+  background:#7d2451;
+  color:#fff8fc;
+  border:2px solid #4d1030;
+  box-shadow:4px 4px 0 #ce6c98;
+  font-size:.97rem;
+  letter-spacing:.02em;
+}
+.btn:hover{background:#a93671}
+.btn:active{box-shadow:0 0 0 #ce6c98}
+.btn.primary{background:#ff8bbb;color:#581234;border-color:#581234}
+.btn.primary:hover{background:#ffb0d0}
+.btn.pink{background:#f75da1;color:#501431;border-color:#501431}
+.btn.warn{background:#9b335c;color:#fff;border-color:#792245}
+.btn.ghost{background:#fff1f7;color:#6a1d45}
+.btn.small{font-size:.88rem}
+.tabs{border-bottom:4px solid #8c2a58;gap:9px}
+.tab{
+  background:#ffbad6;color:#602043;border:2px solid #a34c76;
+  font-size:.94rem;min-height:48px;letter-spacing:.02em;
+}
+.tab.current{background:#ab316e;border-color:#641840;color:#fff6fc;box-shadow:4px 4px 0 #e18db3}
+.card{
+  background:linear-gradient(170deg,#fff6fa 0%,#ffe2ee 100%);
+  border:3px solid #a12f65;
+  box-shadow:6px 6px 0 #d0709c;
+  color:#541637;
+}
+.card h2,.card h3{color:#5a163a;font-size:1.25rem;line-height:1.28}
+.sub{color:#773956;font-size:1rem;line-height:1.45}
+.help{color:#67304d;font-size:.96rem;line-height:1.5}
+.section-label{
+  background:#ad3672;
+  color:#fff5fb;
+  font-size:.66rem;
+  padding:10px 10px;
+  line-height:1.65;
+  box-shadow:3px 3px 0 #f6a2c5;
+}
+.pixel-symbol{background:#ffc1da;color:#6f1a45;border-color:#641941;box-shadow:4px 4px 0 #e687b0}
+.pixel-kicker{color:#ffd5e8;font-size:.54rem;line-height:1.5}
+.rack-display{
+  background:#6e1c48;
+  border:3px solid #9f376b;
+  box-shadow:inset 0 0 0 4px #ca6a9c;
+  color:#fff9fc;
+}
+.rack-display .routename{color:#fff3fa;font-size:1.34rem}
+.rack-display .small,.mode-notice{color:#ffcee1}
+.quick-fx{gap:10px}
+.fxkey{
+  background:#ffc6de;
+  color:#5d193c;
+  border:2px solid #b65684;
+  box-shadow:3px 3px 0 #e791b8;
+  font-size:1.03rem;
+  line-height:1.15;
+  padding:8px;
+  min-height:68px;
+}
+.fxkey:hover{background:#ffb3d2}
+.fxkey.active{background:#ac316f;color:#fff9fb;border-color:#561638;box-shadow:3px 3px 0 #f58fbb}
+.fxkey small{font-size:.83rem}
+.processor-unit{background:#ffd3e5;color:#662044;border-color:#cc7fa4;opacity:.58}
+.processor-unit strong{color:#652044;font-size:.92rem}
+.processor-unit span{color:#713653;font-size:.86rem}
+.processor-unit.active{background:#e45b9a;border-color:#8c2859;opacity:1}
+.processor-unit.active strong{color:#fff}
+.processor-unit.active span{color:#fff1f8}
+.parameter-deck{border:3px dashed #d684ad;background:#fff1f7}
+.parameter-deck .control.inactive{opacity:.43}
+.parameter-deck input[type=range]:disabled{cursor:not-allowed}
+.ctrlhead label,.field label{color:#5e2040;font-size:.94rem;line-height:1.22}
+.num{background:#ffb8d3;color:#5b1539;border:2px solid #aa4d7b;font-size:1.1rem;font-weight:700}
+input[type=range]{accent-color:#db3e87}
+select,input[type=number],input[type=text],textarea{
+  color:#531a3b;
+  background:#fffafe;
+  border:2px solid #a44372;
+  font-size:1rem;
+  box-shadow:inset 2px 2px 0 #ffdae8;
+}
+select option{color:#541637;background:#fff4f9}
+.checkrow{color:#5e2040;font-size:1rem}
+.checkrow input{accent-color:#bd3b7a}
+.fader-rack{background:#ffcade;border:3px dashed #d377a4}
+.fader .ctrlhead label{color:#5c2041;font-size:.88rem;min-height:36px}
+.fader .num{background:#fff8fb;border-color:#9b4775;color:#6a224c;font-size:1rem}
+.fader .fader-travel{
+  background:linear-gradient(90deg,#ffd7e7 43%,#a6376a 45%,#a6376a 55%,#ffd7e7 57%);
+  border:2px solid #a64d7e;
+}
+.fader input[type=range]{accent-color:#e3458b}
+.fader input[type=range]::-webkit-slider-thumb{background:#d73b80;border:3px solid #fff6fa;box-shadow:2px 2px 0 #76304d}
+.fader input[type=range]::-moz-range-thumb{background:#d73b80;border:3px solid #fff6fa}
+.preset-dock{
+  background:#ffe8f2;
+  color:#58203e;
+  border:3px solid #af4779;
+  box-shadow:6px 6px 0 #de84ad;
+}
+.muted-note{font-size:.88rem}
+.bpm-chip label{color:#5a1d3e;font-size:1rem}
+.read-progress,.statusnote{color:#76264b;font-size:1rem}
+.slots{gap:8px}
+.slot{background:#ffbad6;border:2px solid #a84e7c;color:#5a2040;box-shadow:3px 3px 0 #f19fbe;font-size:1.15rem}
+.slot.active{background:#a82e6c;color:#fff;border-color:#681943}
+.slot.filled:after{background:#ae316f}
+.slot.active:after{background:#fff9fc}
+.preview{background:#fff8fc;border:2px solid #b9618a;color:#572045;font-size:.94rem}
+.alert{background:#ffe5cc;border:2px solid #bb7542;color:#753d2d;font-size:1rem}
+.alert.okay{background:#e5f9e9;border-color:#5d9e71;color:#295b3b}
+.presetcard{background:#ffe9f2;border:2px solid #a84070;box-shadow:4px 4px 0 #e48bb3}
+.presetcard strong{color:#592043;font-size:1.13rem}
+.presetcard small{color:#794361;font-size:.95rem}
+.log{background:#fff7fb;border-color:#ad5683;color:#652447;font-size:.9rem}
+.log .err{color:#a53c28}.log .good{color:#25673f}
+.footer{color:#793952;font-size:.91rem}
+.footer a{color:#842b5c}
+.algorithm-grid{gap:12px}
+.alg-button{background:#ffc9dd;color:#621f44;border:2px solid #b85d8a;box-shadow:3px 3px 0 #e597ba;font-size:1rem}
+.alg-button.active{background:#a93472;border-color:#67193e;color:#fff7fc}
+.alg-button small{font-size:.82rem}
+.chain-empty,.stage{background:#ffdfec;border-color:#c37a9c;color:#69354e}
+@media(max-width:830px){.top{gap:18px}.logo{font-size:clamp(21px,4.2vw,36px)}.section-label{font-size:.61rem}}
+@media(max-width:620px){
+  :root{font-size:16px}
+  .logo{font-size:clamp(17px,6.5vw,29px)}
+  .tab{font-size:.85rem}
+  .fxkey{font-size:.92rem}
+  .fader-rack{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+
+/* v0.8 · Compact touch mixer, three panels in a row, global controls at top. */
+.master-clock{display:grid;grid-template-columns:minmax(155px,1.1fr) minmax(105px,.42fr) minmax(175px,.75fr) minmax(210px,1.5fr);gap:13px;align-items:center;background:#ff82b8;border:4px solid #82224c;padding:14px 16px;margin-bottom:16px;box-shadow:6px 6px 0 #d477a0;color:#561638}
+.master-heading strong{font-family:"Press Start 2P",monospace;display:block;font-size:.76rem;line-height:1.65}.master-heading span{display:block;margin-top:7px;font-size:.85rem}
+.master-clock .field label{font-weight:900;margin:0 0 6px}.master-clock input,.master-clock select{background:#fff9fc;min-height:45px}.timing-status{font-size:.87rem;background:#ffe1ee;border:2px solid #a83d72;padding:9px;min-height:52px;line-height:1.15}
+.mixer-three{display:grid;grid-template-columns:minmax(295px,1.55fr) minmax(175px,.91fr) minmax(175px,.91fr);gap:13px;align-items:stretch;margin-bottom:15px}
+.mixer-three .card{margin:0;padding:14px 12px;min-width:0;display:flex;flex-direction:column}
+.mixer-three .card .section-label{font-size:.58rem;align-self:flex-start;line-height:1.5;padding:9px 8px}
+.mixer-three .sub{font-size:.89rem;min-height:40px;margin:11px 0}
+.mixer-three .field{margin-bottom:14px}.mixer-three .field label{font-size:.87rem}.mixer-three select{font-size:.95rem;padding:8px;min-height:43px}
+.compact-display{padding:9px 8px;display:block;margin:0 0 13px}.compact-display .routename{font-size:1.05rem;line-height:1.25}.compact-display .mode-notice{margin-top:5px;font-size:.77rem}.compact-display .pixel-kicker{font-size:.48rem}
+.mixer-three .processor-strip{gap:3px;margin:0 0 10px}.mixer-three .processor-unit{padding:7px 2px;min-height:57px;border-width:2px}.mixer-three .processor-unit strong{font-size:.75rem;margin:0 0 4px}.mixer-three .processor-unit span{font-size:.64rem;line-height:1.1}
+.mini-hint{color:#79435d;font-size:.81rem;line-height:1.2;margin:9px 0 13px}.mini-section-label{font-size:.85rem;font-weight:900;border-bottom:2px solid #b66c90;margin:10px 0 11px;padding-bottom:6px}
+.fx-param-rack,.mixer-three .fader-rack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 5px;border:2px dashed #d188ab;background:#ffd0e4}
+.variation-card #voiceControls{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+.mixer-three .fader{margin:0;gap:5px;min-width:0}.mixer-three .fader .ctrlhead label{font-size:.76rem;line-height:1.04;min-height:33px;overflow-wrap:anywhere}
+.mixer-three .fader .num{font-size:.95rem;min-width:0;width:90%;padding:3px 0}.mixer-three .fader .fader-travel{height:143px;width:34px;max-width:95%}
+.mixer-three .fader input[type=range]{width:123px}
+.mixer-three .proc-fader .muted-note{text-align:center;font-size:.7rem;line-height:1.1;min-height:26px;max-width:100%}
+.mixer-three .control.inactive,.mixer-three .fader.is-disabled{opacity:.32;filter:grayscale(.7)}
+.mixer-three .control.inactive .fader-travel{background-color:#c5b5bc}
+.action-footer{padding:14px;background:#ffdfec;border:3px solid #a74073;box-shadow:5px 5px 0 #d983ab;margin-bottom:18px}
+.action-footer .statusnote{margin-top:9px}
+@media(min-width:700px) and (max-width:880px){.master-clock{grid-template-columns:1fr .45fr 1fr}.timing-status{grid-column:1/-1}.mixer-three{grid-template-columns:minmax(280px,1.5fr) minmax(170px,.9fr) minmax(170px,.9fr);gap:9px}.mixer-three .card{padding:11px 7px}}
+@media(max-width:699px){.master-clock{grid-template-columns:1fr 1fr;gap:9px}.master-heading{grid-column:1/-1}.timing-status{grid-column:1/-1}.mixer-three{grid-template-columns:1fr}.variation-card #voiceControls{grid-template-columns:repeat(4,minmax(0,1fr))}.mixer-three .side-rack{grid-template-columns:repeat(4,minmax(0,1fr))}.mixer-three .card .sub{min-height:0}.mixer-three .fader .fader-travel{height:135px}}
+@media(max-width:400px){.mixer-three .side-rack{grid-template-columns:repeat(2,minmax(0,1fr))}.mixer-three .fader .ctrlhead label{font-size:.7rem}}
+
+/* v1.0 · One physical mixer row: all 14 faders, compact pixel lettering. */
+.mixer-selectors{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin:0 0 14px}
+.selector-cell{min-width:0;display:flex;flex-direction:column;gap:9px;padding:12px 13px 14px;background:#fff1f7;border:3px solid #a13268;box-shadow:4px 4px 0 #df82aa}
+.selector-cell .section-label{font-size:.57rem;align-self:flex-start;padding:8px 9px}
+.selector-cell .field{min-width:0}.selector-cell .field label{font-size:.86rem;margin-bottom:4px}
+.selector-cell select{width:100%;font-size:.94rem;min-height:40px;padding:7px 9px}
+.single-rack-card{padding:13px 10px 10px;margin:0 0 16px}
+.group-headers{display:grid;grid-template-columns:6fr 3fr 4fr;gap:4px;margin:0 0 7px;text-align:center}
+.group-headers>div{background:#a93775;color:#fff6fc;border:2px solid #6c1e47;padding:8px 2px;font:400 .58rem/1.5 'Press Start 2P','Pixelify Sans',monospace;white-space:nowrap}
+.group-headers>div:nth-child(2){background:#ce5791}.group-headers>div:nth-child(3){background:#a54276}
+.rack-scroll{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding-bottom:3px}
+.mixer-faders{display:grid;grid-template-columns:repeat(18,minmax(0,1fr));gap:2px;align-items:stretch;background:#ffccdf;padding:9px 2px 7px;border:2px dashed #cf77a1;min-width:830px}
+.mixer-faders .fader-group{display:contents!important}
+.mixer-faders .fader{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;min-width:0;padding:1px 0}
+.mixer-faders .fader .ctrlhead{display:contents}
+.mixer-faders .fader .ctrlhead label{order:3;min-height:24px;max-width:100%;font-size:.75rem;font-weight:900;letter-spacing:0;text-align:center;line-height:1.1;color:#60213f;overflow-wrap:normal;white-space:nowrap}
+.mixer-faders .fader .num{order:2;min-width:0;width:89%;max-width:58px;margin:0;font-size:.87rem;padding:4px 0;background:#fff5fb;text-align:center;border:2px solid #ad5483;color:#561637}
+.mixer-faders .fader .fader-travel{order:1;height:145px;width:27px;max-width:90%;position:relative;border:2px solid #b35485;background:linear-gradient(90deg,#ffd7e7 42%,#a6376a 44%,#a6376a 56%,#ffd7e7 58%)}
+.mixer-faders .fader input[type=range]{position:absolute;width:125px;height:27px;min-height:0;max-width:none;transform:rotate(-90deg);accent-color:#e3458b}
+.mixer-faders .proc-fader .muted-note{display:none}
+.mixer-faders .fader.is-disabled,.mixer-faders .control.inactive{opacity:.30;filter:grayscale(.7)}
+.mixer-faders .fader input:disabled{cursor:not-allowed}
+.mix-info{margin:10px 3px 3px;font-size:.89rem;line-height:1.35;color:#713754}
+.fader-legend{font-size:.76rem;color:#783e5b;margin:5px 3px 2px;line-height:1.25}
+@media(max-width:900px){.mixer-selectors{gap:7px}.selector-cell{padding:10px 7px}.selector-cell .section-label{font-size:.50rem}.group-headers>div{font-size:.48rem}.wrap{padding:14px 15px 40px}}
+@media(max-width:720px){.mixer-selectors{grid-template-columns:1fr 1fr;gap:8px}.selector-cell:first-child{grid-column:1/-1}.group-headers{min-width:830px}.single-rack-card{padding:10px 6px}.fader-legend{font-size:.68rem}}
+
+
+/* YOKOVOCO 1.1 · MIDI first, dense fader desk */
+.midi-first{background:#fff1f8;border:4px solid #7c254d;box-shadow:5px 5px 0 #e88eb6;margin:0 0 12px;padding:10px 11px 8px}
+.first-line{display:grid;grid-template-columns:minmax(165px,1.25fr) minmax(165px,1.25fr) 104px 128px 84px;gap:9px;align-items:end}
+.first-line .field{min-width:0}.first-line .field label{display:block;margin-bottom:4px;font:bold .83rem/1.2 'Pixelify Sans',monospace}
+.first-line select{min-height:39px;font-size:.95rem;max-width:100%;width:100%}
+.first-line .btn{font-size:.85rem;min-height:39px;padding:5px 8px;white-space:nowrap}
+.flash-strip{display:flex;align-items:center;gap:15px;padding-top:7px;font-size:.82rem;color:#773452;line-height:1.2}
+.flash-strip .checkrow{flex-shrink:0;font-size:.84rem;display:flex;align-items:center;gap:7px}
+.flash-strip input{accent-color:#a42e70}
+#flashSummary{overflow-wrap:anywhere}
+#slots .slot.read-ok{border-bottom:5px solid #28836c}#slots .slot.read-fail{border-bottom:5px solid #b94b58}#slots .slot.read-pending{border-bottom:5px solid #e9a02e}
+#allFaders .fader input[type=range]::-webkit-slider-thumb{border:0!important;box-shadow:none!important;outline:none!important;border-radius:3px!important;background:#d83d84!important}
+#allFaders .fader input[type=range]::-moz-range-thumb{border:0!important;box-shadow:none!important;outline:none!important;border-radius:3px!important;background:#d83d84!important}
+#allFaders .fader .fader-travel{border:0;background:linear-gradient(90deg,#ffdce9 44%,#9e2b62 47%,#9e2b62 53%,#ffdce9 56%)}
+#allFaders.mixer-faders{padding-top:7px;border:none;background:#ffdbe9}
+.single-rack-card{padding:10px 8px}
+.mix-info{font-size:.77rem;margin:4px 2px 0}
+@media(max-width:900px){.first-line{grid-template-columns:minmax(0,1.2fr) minmax(0,1.2fr) 88px 130px 56px;gap:6px}.midi-refresh-btn{grid-column:auto;grid-row:auto}.first-line .field label{font-size:.75rem}.first-line .btn{font-size:.79rem;padding:4px 2px}.midi-first{padding:8px}.flash-strip{font-size:.73rem;gap:8px}}
+@media(max-width:610px){.first-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.first-line .field:nth-child(3){grid-column:1}.first-line .midi-connect-btn{grid-column:2}.first-line .midi-refresh-btn{grid-column:2;grid-row:3}.flash-strip{align-items:start;flex-direction:column;gap:2px}}
+
+/* YOKOVOCO 1.2: compact numeric MIDI channel, compact title, no decorative nav rule */
+.first-line .channel-field input[type=number]{width:100%;min-height:39px;height:39px;padding:5px 6px;text-align:center;font-size:1.15rem;font-weight:800;border:2px solid #a12f65;background:#fff6fa;color:#601940;font-variant-numeric:tabular-nums}
+.first-line{grid-template-columns:minmax(165px,1.25fr) minmax(165px,1.25fr) 74px 128px 84px}
+.tabs{border-bottom:none}
+@media(max-width:900px){.first-line{grid-template-columns:minmax(0,1.2fr) minmax(0,1.2fr) 74px 130px 56px}}
+@media(max-width:610px){.first-line{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.first-line .channel-field{grid-column:1;max-width:85px}}
+/* v1.8 · Pixel mixer fader sections: 1 drive, 5 compressor, 5 voice, 3 reverb, 4 chorus.
+   Both racks share a 14-column track width and the same horizontal scroll parent. */
+.fader-group-labels{display:grid;grid-template-columns:repeat(18,minmax(0,1fr));gap:2px;min-width:710px;background:#ffdbe9;padding:2px 2px 7px;box-sizing:border-box;align-items:start}
+.fader-section{min-width:0;display:flex;justify-content:center;align-items:center;border-top:3px solid #8a2a5b;color:#70274d;font-family:"Pixelify Sans",ui-monospace,monospace;font-weight:800;font-size:clamp(9px,1.25vw,13px);letter-spacing:0;white-space:nowrap;text-align:center;line-height:1.5;padding:4px 0 1px}
+.fx-drive{grid-column:span 1}.fx-comp{grid-column:span 5}.fx-voice{grid-column:span 5}.fx-reverb{grid-column:span 3}.fx-chorus{grid-column:span 4}
+.fx-comp{border-top-color:#aa4d78}.fx-voice{border-top-color:#be4880}.fx-reverb{border-top-color:#983464}.fx-chorus{border-top-color:#c04d82}
+@media(max-width:720px){.fader-section{font-size:10px}}
+/* v1.8 compact faders + per-control MIDI data type beneath labels */
+.mixer-faders{grid-template-columns:repeat(18,minmax(0,1fr));min-width:700px;gap:1px;padding-left:2px;padding-right:2px}
+.fader-group-labels{grid-template-columns:repeat(18,minmax(0,1fr));min-width:700px;gap:1px}
+.mixer-faders .fader{gap:3px}
+.mixer-faders .fader .ctrlhead label{min-height:18px;font-size:clamp(10px,1.15vw,12px)}
+.mixer-faders .midi-id{order:4;min-height:15px;line-height:1.3;font:700 10px/1.3 "Pixelify Sans",ui-monospace,monospace;color:#8d3464;white-space:nowrap}
+.mixer-faders .midi-id.sys{color:#986b83}
+.mixer-faders .fader .num{font-size:.77rem;max-width:46px;padding:3px 0}
+.mixer-faders .fader .fader-travel{height:145px}
+.fader-section{font-size:11px}
+.fx-drive{grid-column:span 1}.fx-comp{grid-column:span 5}.fx-voice{grid-column:span 5}.fx-reverb{grid-column:span 3}.fx-chorus{grid-column:span 4}
+@media(max-width:720px){.mixer-faders,.fader-group-labels{min-width:700px}}
+/* YOKOVOCO version indicator: intentionally subtle, directly beside logo. */
+.logo .build-version{display:inline-block;vertical-align:baseline;position:relative;top:-.10em;margin-left:9px;font-family:"Pixelify Sans",ui-monospace,monospace;font-size:clamp(9px,.95vw,12px);letter-spacing:0;font-weight:700;line-height:1;color:#742149;text-shadow:none;white-space:nowrap;}
+@media(max-width:610px){.logo .build-version{font-size:10px;margin-left:5px;}}
+
+/* v1.9.2: two separately aligned rows, no scrolling 18 tiny faders side-by-side */
+#allFaders.mixer-faders{grid-template-columns:repeat(11,minmax(0,1fr));min-width:540px}
+#secondaryFaders.mixer-faders{grid-template-columns:repeat(7,minmax(0,1fr));min-width:360px;margin-top:13px}
+.first-row-labels{grid-template-columns:repeat(11,minmax(0,1fr));min-width:540px}
+.second-row-labels{grid-template-columns:repeat(7,minmax(0,1fr));min-width:360px}
+@media(max-width:720px){#allFaders.mixer-faders,.first-row-labels{min-width:540px}#secondaryFaders.mixer-faders,.second-row-labels{min-width:360px}}
+.eq-panel{margin-top:15px}.eq-beta{font-size:10px;letter-spacing:.05em}.eq-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding:12px 0}.eq-band{display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 3px;border:2px solid #d58caa;background:#ffe3ee;color:#60213f}.eq-band label{font-size:12px;font-weight:800}.eq-band output{font:800 13px/1.2 monospace}.eq-band input[type=range]{width:100%;accent-color:#d83d84}.filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:10px 0 15px}.filter-knob{background:#ffe4ef;border:2px solid #d58caa;padding:12px;display:flex;flex-direction:column;gap:8px}.filter-knob label{font-size:12px;font-weight:900}.filter-knob input{accent-color:#d83d84}.filter-knob small{font-size:10px}.filter-knob output{font-family:monospace;font-size:15px;font-weight:800}.eq-panel .buttons{margin-top:10px}@media(max-width:450px){.filter-grid{grid-template-columns:1fr}.eq-grid{gap:3px}.eq-band label{font-size:10px}}
+</style>
+</head>
+<body><div class="wrap">
+<header class="top">
+  <div class="logo">YOKO<span class="star">VOCO</span><span class="build-version" aria-label="Version 1.9.2">v1.9.2</span></div>
+  <div class="connection"><span class="pill"><span id="led" class="dot"></span><span id="connStatus">MIDI not connected</span></span></div>
+</header>
+<section class="midi-first" aria-label="Connect MIDI first">
+  <div class="first-line">
+    <div class="field"><label for="output">MIDI OUT</label><select id="output"><option value="">Connect to see devices</option></select></div>
+    <div class="field"><label for="input">MIDI IN (LYRIC READ)</label><select id="input"><option value="">Connect to see devices</option></select></div>
+    <div class="field channel-field"><label for="channel" title="Selected channel for MIDI mixer faders. Global FX stays on Miku channel 1.">MIX CH</label><input id="channel" type="number" min="1" max="16" step="1" value="1" inputmode="numeric" aria-label="MIDI channel 1 to 16"></div>
+    <button class="btn primary midi-connect-btn" id="connect">CONNECT MIDI</button>
+    <button class="btn small ghost" id="connectBasic" title="Diagnostic: discover MIDI ports without requesting SysEx">CC TEST</button>
+    <button class="btn small ghost midi-refresh-btn" id="refresh" title="Refresh MIDI ports" aria-label="Refresh MIDI ports">↻</button>
+  </div>
+  <div class="flash-strip"><label class="checkrow"><input type="checkbox" id="autoFlash" checked> AUTO READ FLASH 01–15</label><span id="flashSummary" role="status" aria-live="polite">Connect MIDI IN + OUT to load Miku's stored lyrics.</span></div>
+  <div class="statusnote" style="font-size:11px;margin:5px 0 0">On iPhone: in <b>Web MIDI Browser settings</b>, enable <b>SysEx</b>, then tap <b>CONNECT MIDI</b>. If nothing appears, tap <b>CC TEST</b> and inspect the log in <b>MIDI + Help</b>. CC TEST alone cannot send FX SysEx.</div>
+</section>
+<nav class="tabs" aria-label="App sections"><button class="tab current" data-tab="fx">Mixer Desk</button><button class="tab" data-tab="lyrics">Lyrics 00–15</button><button class="tab" data-tab="presets">Preset Library</button><button class="tab" data-tab="settings">MIDI + Help</button></nav>
+<section id="page-fx" class="page current">
+  <div class="master-clock" role="group" aria-label="Global effect timing">
+    <div class="master-heading"><strong>♪ MASTER CLOCK</strong><span>SHARED BY DELAY + ECHO</span></div>
+    <div class="field"><label for="bpm">BPM</label><input type="number" id="bpm" min="35" max="300" value="120" inputmode="numeric"></div>
+    <div class="field"><label for="noteDiv">BEAT DIVISION</label><select id="noteDiv"><option value="0.25">1/16</option><option value="0.3333333333333333">1/8 TRIPLET</option><option value="0.5">1/8</option><option value="0.75">DOTTED 1/8</option><option value="1">1/4</option><option value="1.5">DOTTED 1/4</option><option value="2">1/2</option><option value="4">1/1 WHOLE NOTE</option></select></div>
+    <div id="delayInfo" class="timing-status" aria-live="polite">Global timing is ready.</div>
+  </div>
+  <div class="preset-dock"><div class="field"><label for="mainPresetSelect">MY SAVED PRESETS</label><select id="mainPresetSelect"><option value="">Unsaved live settings</option></select></div><div class="buttons"><button class="btn primary" id="mainSave">+ SAVE NEW</button><button class="btn" id="mainLoad">LOAD TO MIKU</button><button class="btn" id="mainOverwrite">OVERWRITE</button></div></div>
+  <div class="mixer-selectors" aria-label="Hardware effect algorithms">
+    <div class="selector-cell"><div class="section-label">01 / VARIATION FX</div><div class="field"><label for="variationType">FX ALGORITHM</label><select id="variationType"></select></div></div>
+    <div class="selector-cell"><div class="section-label">02 / REVERB</div><div class="field"><label for="reverbType">REVERB TYPE</label><select id="reverbType"></select></div></div>
+    <div class="selector-cell"><div class="section-label">03 / CHORUS</div><div class="field"><label for="chorusType">CHORUS TYPE</label><select id="chorusType"></select></div></div>
+  </div>
+  <section class="card single-rack-card" aria-label="All hardware mixer faders">
+    <div class="rack-scroll">
+      <div class="mixer-faders" id="allFaders">
+        <div id="driveControls" class="fader-group">
+          <div class="control fader proc-fader"><div class="ctrlhead"><label for="procDrive" title="Distortion / Overdrive Drive">DRIV</label><span class="num" id="v-procDrive">64</span></div><div class="fader-travel"><input type="range" id="procDrive" min="0" max="127" value="64" aria-label="Drive"></div><small class="midi-id sys" title="Yamaha XG System Exclusive">SYX</small><small id="driveNote" class="muted-note">Drive</small></div>
+        </div>
+        <div id="compressorControls" class="fader-group">
+          <div class="control fader proc-fader"><div class="ctrlhead"><label for="procThreshold" title="Compressor threshold (-48 to -6 dB)">THRE</label><span class="num" id="v-procThreshold">100</span></div><div class="fader-travel"><input type="range" id="procThreshold" min="79" max="121" value="100" aria-label="Compressor Threshold"></div><small class="midi-id sys" title="Yamaha XG System Exclusive">SYX</small><small id="compressNote" class="muted-note">Compressor</small></div>
+        </div>
+        <div id="voiceControls" class="fader-rack fader-group"></div>
+      </div>
+      <div class="fader-group-labels first-row-labels"><span class="fader-section fx-drive">DRIVE</span><span class="fader-section fx-comp">--- COMPRESSOR ---</span><span class="fader-section fx-voice">--- VOICE / MIX ---</span></div>
+      <div class="mixer-faders row-two" id="secondaryFaders">
+        <div id="reverbControls" class="fader-rack fader-group"></div>
+        <div id="chorusControls" class="fader-rack fader-group"></div>
+      </div>
+      <div class="fader-group-labels second-row-labels" aria-label="Second row fader sections">
+        <span class="fader-section fx-reverb">--- REVERB ---</span>
+        <span class="fader-section fx-chorus">--- CHORUS ---</span>
+      </div>
+    </div>
+    <div id="mixInfo" class="mix-info mini-hint" aria-live="polite">Variation routing uses SYSTEM mode (CC94) for Miku's vocal effects.</div>
+  </section>
+  <section class="card eq-panel" aria-label="Five-band EQ and filter controls">
+    <div class="section-label">04 / FIVE-BAND EQ + FILTERS <small class="eq-beta">XG EXPERIMENTAL</small></div>
+    <p class="sub">Five-band hardware XG Multi EQ is optional on Yamaha devices and <b>not verified on the NSX-39</b>. Enable MIDI test below only if you want to test these SysEx messages; the slider positions alone do not prove the sound changes. LP sends XG CC74 on the selected mixer channel (GM sounds only; Miku vocal response is not confirmed). Independent HP filtering is not documented for this voice and stays local-only.</p>
+    <div class="eq-grid" id="eqGrid"></div>
+    <div class="filter-grid">
+      <div class="filter-knob"><label for="lowPass">LP FILTER · CC74</label><input id="lowPass" type="range" min="0" max="127" value="64"><output id="lowPassValue">64</output><small>Brightness / cutoff offset · GM / unverified vocal</small></div>
+      <div class="filter-knob"><label for="highPass">HP FILTER · LOCAL ONLY</label><input id="highPass" type="range" min="0" max="127" value="0"><output id="highPassValue">0</output><small>No independent NSX-39 vocal HP command verified</small></div>
+    </div>
+    <label class="checkrow"><input type="checkbox" id="eqTest"> ENABLE EXPERIMENTAL XG MULTI EQ SYSEX (GLOBAL, NOT CONFIRMED ON MIKU)</label>
+    <div class="buttons"><button id="eqApply" class="btn small">SEND 5-BAND EQ TEST</button><button id="eqFlat" class="btn small">RESET EQ FLAT</button></div>
+    <p id="eqStatus" class="statusnote" aria-live="polite">5-band EQ settings are stored locally. Experimental MIDI test is off.</p>
+  </section>
+  <div class="action-footer">
+    <div class="buttons"><button class="btn primary" id="sendAll">RESYNC ALL FX</button><button class="btn" id="syncPart">SYNC MIX CH</button><button class="btn" id="audition">TEST NOTE</button><button class="btn warn" id="panic">PANIC</button><label class="checkrow"><input type="checkbox" id="liveCC" checked> LIVE MIDI</label></div>
+    <details class="statusnote" style="margin-top:5px"><summary style="cursor:pointer">FX ROUTING / DIAGNOSTICS (optional)</summary>
+      <div class="buttons" style="align-items:center;gap:7px;margin:8px 0"><button class="btn small" id="testDist">TEST DIST (SYS)</button><button class="btn small" id="testComp">TEST COMP (SYS)</button></div>
+      <small>Both tests use the System variation bus and send CC94=127 to Miku CH1. They synchronize the algorithm dropdown and faders with the tested settings. Variation INSERT is not used for the vocal part in this build because your NSX-39 did not respond to it. Reduce the monitoring volume first.</small>
+    </details>
+    <div class="statusnote" id="fxStatus" aria-live="polite">Select an algorithm. The effect will be sent automatically.</div>
+  </div>
+</section>
+<section id="page-lyrics" class="page">
+ <div class="card"><div class="section-label">16 lyric slots</div><p class="sub">Slot 00 is temporary RAM (fast, not retained after power-off). Slots 01–15 write to flash and should be changed when playback is stopped.</p>
+  <div id="slots" class="slots"></div><p class="help" id="scanLegend">After connecting, flash slots show read status: ✓ received · ! no reply · … pending. No flash data is modified by reading.</p><div class="cols2"><div class="field"><label for="slotName">Local slot label</label><input id="slotName" type="text" maxlength="40" placeholder="e.g. Verse A"></div><div class="field"><label>Selected slot</label><div class="pill" id="slotInfo" style="border-radius:9px;padding:11px">00 · Temporary RAM</div></div></div><div class="spacer"></div><div class="field"><label for="lyricText">Japanese lyrics (hiragana or katakana)</label><textarea id="lyricText" lang="ja" spellcheck="false" placeholder="はとしぇぷくらうど"></textarea></div><p class="help" id="lyricCount">0 / 64 mora. One device phoneme per syllable; long vowels are split into separate notes. Small っ and ー need manual rewriting.</p>
+  <div class="buttons" style="margin:15px 0"><button class="btn primary" id="writeSlot">Send to Miku</button><button class="btn" id="selectSlot">Select this slot on Miku</button><button class="btn" id="rewindSlot">Restart lyric position</button><button class="btn" id="readSlot">Read from Miku</button><button class="btn primary" id="readAll">READ ALL FLASH 01–15</button></div>
+  <div class="alert">Writing slots 01–15 overwrites Miku's stored lyrics and briefly interrupts MIDI reception. Slot 00 is recommended during live performance. Reading requires a MIDI input route back from Miku.</div>
+  <div class="read-progress" id="readProgress" aria-live="polite">Readback requires a MIDI return path from Miku.</div><div class="section-label" style="margin-bottom:9px">Generated MIDI SysEx</div><div id="sysexPreview" class="preview" aria-live="polite">—</div><div class="statusnote" id="lyricStatus"></div>
+ </div>
+</section>
+<section id="page-presets" class="page">
+ <div class="card"><div class="section-label">Your FX presets</div><p class="sub">Presets are saved in this browser's local storage, not inside the NSX-39. Apply one after each hardware restart or export a backup.</p>
+  <div class="buttons"><button class="btn primary" id="savePreset">Save current as preset</button><button class="btn" id="exportBackup">Export entire YOKOVOCO library (.json)</button><button class="btn" id="importBackup">Import library (.json)</button><input type="file" id="importFile" accept="application/json,.json" class="hidden"></div>
+ </div><div id="presetGrid" class="presetgrid"></div><p class="help">The bank starts empty. Only your saved presets appear here. Loading changes the on-screen settings; select APPLY ALL TO MIKU to send them to the device. Export JSON backups for safekeeping.</p>
+</section>
+<section id="page-settings" class="page">
+ <div class="grid">
+  <div class="card"><div class="section-label">MIDI settings</div><p class="sub">Choose the MIDI input, output, and channel in the connection strip above the mixer. The input must have a real SysEx return route from Miku for lyric readback.</p>
+  <div class="buttons"><button class="btn" id="requestStatus">Request Miku lyric position</button></div>
+  <p class="help">Channel 1 is normally Miku's vocal part. A MIDI output connection alone cannot read the flash; Miku's MIDI replies must reach the selected MIDI input.</p>
+  </div>
+  <div class="card"><div class="section-label">Diagnostics</div><p class="sub">Logs MIDI sent and incoming device replies. No data is uploaded to a server.</p><div id="log" class="log" role="log" aria-live="polite"></div><div class="buttons" style="margin-top:10px"><button class="btn small" id="clearLog">Clear log</button><button class="btn small" id="copyLog">Copy log</button></div></div>
+ </div>
+ <div class="card"><div class="section-label">How to run on iPad 6</div><p class="sub" style="margin-top:12px">Use an iOS browser that implements Web MIDI with SysEx. Ordinary Safari support varies; test with the Web MIDI Browser app by Takashi Mizuhiki. For reliable permissions, host this file at an HTTPS address (for example GitHub Pages), then open it in the browser and press Connect MIDI.</p>
+ <p class="help"><strong>Suggested routing:</strong> iPad 6 → Lightning USB host adapter → H2MIDI → Pocket Miku. Select the actual output port, not a disconnected virtual port. Avoid sending FX SysEx while Xequence's clock is running until you've tested stability.</p>
+ <p class="help"><strong>Supported:</strong> CC1, CC7, CC10 on GM channels, CC11, CC91, CC93 and CC94 (system variation), XG processor choice, supported drive/threshold and fixed-combination parameters, slot 00–15 lyric writing/reading, user presets and JSON backup. <strong>Limitation:</strong> Per-channel settings are stored locally and are not read back from Miku. The insertion effect targets Miku channel 1 regardless of the selected mixer channel. Miku has one selectable XG Variation algorithm at a time; internal multi-stage combinations are fixed order. Unsupported individual controls are disabled. Real NSX-39 testing is still necessary for specific optional algorithms and effect timing.</p>
+ </div>
+</section>
+<footer class="footer">YOKOVOCO v1.9.2 — independent Pocket Miku MIDI control project. Built around publicly documented NSX-39 and Yamaha XG commands; not affiliated with Yamaha, Gakken, Crypton, or VOCACID. Test with speakers at low volume. <a href="https://otonanokagaku.net/nsx39/data/nsx39midiguide.pdf" target="_blank" rel="noopener">NSX-39 customization guide</a> · <a href="https://hummtaro.github.io/NSX1-Apps-Eng/" target="_blank" rel="noopener">NSX-39 web app references</a>.</footer>
+</div>
+<script>
+'use strict';
+// YOKOVOCO v0.7 — independent implementation of public MIDI specifications.
+const $ = id => document.getElementById(id);
+const KEY = 'yokovoco-v01'; // Keep local storage key so v0.1 presets and lyrics migrate.
+const clone = o => JSON.parse(JSON.stringify(o));
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,Math.round(Number(v)||0)));
+const hex=bytes=>Array.from(bytes).map(v=>v.toString(16).toUpperCase().padStart(2,'0')).join(' ');
+const midiLog=[];
+function log(msg, kind='') { const s=`${new Date().toLocaleTimeString()}  ${msg}`; midiLog.push(s); if(midiLog.length>180)midiLog.shift(); const el=document.createElement('div'); if(kind)el.className=kind;el.textContent=s;$('log').appendChild(el);while($('log').children.length>180)$('log').firstChild.remove();$('log').scrollTop=$('log').scrollHeight; }
+function tell(id,msg){$(id).textContent=msg;}
+const TYPES={
+ reverb:[['off','No reverb',0,0],['hall1','Hall 1',1,0],['hall2','Hall 2',1,1],['room1','Room 1',2,0],['room2','Room 2',2,1],['stage1','Stage 1',3,0],['plate','Plate',4,0],['white','White Room',16,0],['tunnel','Tunnel',17,0]],
+ chorus:[['off','No chorus',0,0],['chorus1','Chorus 1',65,0],['chorus2','Chorus 2',65,1],['celeste','Celeste 1',66,0],['flanger','Flanger 1',67,0]],
+ variation:[['off','None',0,0],['delay','Delay L / C / R',5,0],['echo','Echo',7,0],['cross','Cross Delay',8,0],['dist','Distortion (NSX HARD1)',75,16],['distHard','Legacy NSX HARD1 alias',75,16],['overdrive','Overdrive',74,0],['compressor','Compressor',83,0],['compdist','Compressor → Distortion',73,1],['distdelay','Distortion → Delay',95,0],['overdelay','Overdrive → Delay',95,1],['compdistdelay','Compressor → Distortion → Delay',96,0],['compoverdelay','Compressor → Overdrive → Delay',96,1]]
+};
+const COMBO_WITH_DELAY=['distdelay','overdelay','compdistdelay','compoverdelay'];
+const DELAY_FX=['delay','echo','cross',...COMBO_WITH_DELAY];
+const DELAY_SYSTEM_FX=['delay','echo','cross'];
+const PROCESSOR_METADATA={
+ off:{stages:[],mode:'OFF'},delay:{stages:['delay'],mode:'SYSTEM'},echo:{stages:['echo'],mode:'SYSTEM'},cross:{stages:['delay'],mode:'SYSTEM'},
+ compressor:{stages:['comp'],mode:'INSERT',thresholdAddr:0x46},dist:{stages:['drive'],mode:'INSERT',driveAddr:0x42},distHard:{stages:['drive'],mode:'INSERT',driveAddr:0x42},overdrive:{stages:['drive'],mode:'INSERT',driveAddr:0x42},
+ compdist:{stages:['comp','drive'],mode:'INSERT',driveAddr:0x42,thresholdAddr:0x72},distdelay:{stages:['drive','delay'],mode:'INSERT',driveAddr:0x48},overdelay:{stages:['drive','delay'],mode:'INSERT',driveAddr:0x48},
+ compdistdelay:{stages:['comp','drive','delay'],mode:'INSERT',driveAddr:0x48,thresholdAddr:0x72},compoverdelay:{stages:['comp','drive','delay'],mode:'INSERT',driveAddr:0x48,thresholdAddr:0x72}
+};
+const processorMeta=()=>PROCESSOR_METADATA[store.fx.variationType]||PROCESSOR_METADATA.off;
+// Verified Yamaha XG layouts. Standalone compressor parameters #1-5 are 2-byte
+// values at 42/44/46/48/4A; combinations store compressor #11-14 in 70-73.
+// Combo algorithms have no independent compressor output parameter.
+const COMP_KEYS=['procThreshold','procAttack','procRelease','procRatio','procOutput'];
+const COMP_LABELS={procThreshold:'THRE',procAttack:'ATK',procRelease:'RELS',procRatio:'RATI',procOutput:'OUT'};
+const COMP_RANGES={procThreshold:[79,121],procAttack:[0,19],procRelease:[0,15],procRatio:[0,7],procOutput:[0,127]};
+const COMP_STANDALONE={procAttack:[0x42,2],procRelease:[0x44,2],procThreshold:[0x46,2],procRatio:[0x48,2],procOutput:[0x4A,2]};
+const COMP_COMBO={procAttack:[0x70,1],procRelease:[0x71,1],procThreshold:[0x72,1],procRatio:[0x73,1]};
+function compParameterMap(){const k=store.fx.variationType;return k==='compressor'?COMP_STANDALONE:['compdist','compdistdelay','compoverdelay'].includes(k)?COMP_COMBO:{};}
+function compParameterMessage(key){const m=compParameterMap()[key];if(!m)return null;const value=clamp(store.fx[key],...COMP_RANGES[key]);return [m[1]===2?xg(m[0],0,value):xg(m[0],value),'Compressor '+key+' (XG SysEx)'];}
+const processorHas=stage=>processorMeta().stages.includes(stage);
+function mixAddress(kind){return ['dist','distHard','overdrive','compdist','distdelay','overdelay','compdistdelay','compoverdelay'].includes(kind)?0x54:null;}
+const defaultFx={eqBands:[0,0,0,0,0],lowPass:64,highPass:0,expression:100,volume:105,modulation:0,brightness:64,resonance:64,reverbSend:36,chorusSend:16,variationSend:50,variationMix:92,reverbType:'hall1',reverbTime:20,reverbReturn:64,chorusType:'chorus1',chorusRate:24,chorusDepth:36,chorusReturn:64,variationType:'off',bpm:120,noteDiv:1,procDrive:64,procThreshold:100,procAttack:6,procRelease:2,procRatio:7,procOutput:127,insertionMix:92,insertPart:1,pan:64,variationRoute:'SYSTEM'};
+const factoryPresets=[];
+let store;
+try{const obj=JSON.parse(localStorage.getItem(KEY)||'null');store=obj&&typeof obj==='object'?obj:{};}catch(_){store={};}
+if(!store.slots || !Array.isArray(store.slots)||store.slots.length!==16)store.slots=Array.from({length:16},()=>({name:'',text:''}));
+if(!Array.isArray(store.presets))store.presets=[];
+const previousFx=store.fx||{};store.fx={...defaultFx,...previousFx,insertionMix:(previousFx.insertionMix??previousFx.variationMix??92)};
+store.selected=clamp(store.selected||0,0,15);
+store.channel=clamp(store.channel||1,1,16);
+// MIDI CC values are channel-specific. Reverb/chorus processors and Variation algorithm are GLOBAL.
+// Migrate the v1.2 front-panel values to the formerly active channel, without losing saved presets.
+const PART_KEYS=['expression','volume','modulation','pan','reverbSend','chorusSend','variationSend'];
+const initialPart=()=>({expression:100,volume:105,modulation:0,pan:64,reverbSend:36,chorusSend:16,variationSend:50});
+const legacyPart=()=>({expression:store.fx.expression,volume:store.fx.volume,modulation:store.fx.modulation,pan:store.fx.pan??64,reverbSend:store.fx.reverbSend,chorusSend:store.fx.chorusSend,variationSend: (isSystemVariation()?store.fx.variationMix:store.fx.variationSend)??50});
+if(!Array.isArray(store.channels)||store.channels.length!==16){const prev=legacyPart();store.channels=Array.from({length:16},()=>initialPart());store.channels[store.channel-1]={...initialPart(),...prev};}
+store.channels=store.channels.map(c=>({...initialPart(),...(c||{})}));
+store.fx.insertionMix=clamp(store.fx.insertionMix??store.fx.variationMix,1,127);
+// On NSX-39 voice, SYSTEM with CC94 is the confirmed audible route for both FX.
+// Discard the previous version's automatic INSERT selection on startup.
+store.fx.variationRoute='SYSTEM';
+if(store.fx.variationType==='distHard')store.fx.variationType='dist';
+function currentPart(){return store.channels[store.channel-1];}
+function isSystemVariation(){return store.fx.variationType!=='off';}
+function loadPartToFx(){const part=currentPart();for(const key of PART_KEYS)if(key!=='variationSend')store.fx[key]=part[key];store.fx.variationMix=isSystemVariation()?part.variationSend:store.fx.insertionMix;}
+function saveCurrentPartValue(key,val){if(key==='variationMix'){if(isSystemVariation())currentPart().variationSend=val;else store.fx.insertionMix=val;}else if(PART_KEYS.includes(key))currentPart()[key]=val;}
+loadPartToFx();
+function switchMixerChannel(raw){const n=Number(raw);store.channel=Number.isFinite(n)?clamp(Math.round(n),1,16):1;$('channel').value=store.channel;loadPartToFx();refreshFx();save();tell('fxStatus',`MIX CH ${store.channel} · Showing saved part faders. Processor types and insertion target remain unchanged.`);}
+function applyPresetData(p){store.fx={...defaultFx,...clone(p.fx)};store.fx.variationRoute='SYSTEM';if(store.fx.variationType==='distHard')store.fx.variationType='dist';
+ if(Array.isArray(p.channels)&&p.channels.length===16)store.channels=p.channels.map(c=>({...initialPart(),...(c||{})}));
+ else {const c=currentPart();for(const key of PART_KEYS)if(key!=='variationSend'&&p.fx[key]!==undefined)c[key]=p.fx[key];if(p.fx.variationSend!==undefined)c.variationSend=p.fx.variationSend;}
+ loadPartToFx();if(!Array.isArray(store.fx.chain))store.fx.chain=[];}
+
+if(!Array.isArray(store.fx.chain))store.fx.chain=[];
+if(!Number.isFinite(store.monitorLevel))store.monitorLevel=30;
+let midi=null, output=null, input=null, sysexAllowed=false, liveTimer={}, pendingRead=null;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){log(`Local save unavailable: ${e.message}`,'err');}}
+function isConnected(){return !!output && output.state==='connected';}
+function send(bytes,label){if(!isConnected()){log(`NOT SENT (no output): ${label} • ${hex(bytes)}`,'err');return false;}if(bytes[0]===0xF0&&!sysexAllowed){log(`NOT SENT (SysEx permission required): ${label}`,'err');return false;}try{output.send(bytes);log(`TX ${label}  ${hex(bytes)}`,'good');return true;}catch(e){log(`MIDI send failed: ${e.message}`,'err');return false;}}
+function ccAt(channel,number,value){return [0xB0+(clamp(channel,1,16)-1),number,clamp(value,0,127)];}
+function cc(number,value){return ccAt(store.channel,number,value);}
+function xg(address,...data){return [0xF0,0x43,0x10,0x4C,0x02,0x01,address,...data,0xF7];}
+function miku(...data){return [0xF0,0x43,0x79,0x09,0x11,...data,0xF7];}
+function lookupType(category,id){return TYPES[category].find(t=>t[0]===id)||TYPES[category][0];}
+function fillTypeSelect(id,category){$(id).innerHTML='';TYPES[category].forEach(([value,label])=>{if(category==='variation'&&value==='distHard')return;const option=document.createElement('option');option.value=value;option.textContent=label;$(id).append(option)});}
+function sliderUi(holder,key,label,min=0,max=127){
+ const wrap=document.createElement('div');wrap.className='control fader';
+ const head=document.createElement('div');head.className='ctrlhead';
+ const lab=document.createElement('label');lab.textContent=label;lab.title=FADER_FULL_LABELS[key]||label;lab.htmlFor=`s-${key}`;
+ const val=document.createElement('span');val.id=`v-${key}`;val.className='num';
+ const range=document.createElement('input');range.type='range';range.id=`s-${key}`;
+ range.min=min;range.max=max;range.step='1';range.value=store.fx[key];range.setAttribute('aria-label',FADER_FULL_LABELS[key]||label);val.textContent=range.value;
+ head.append(lab,val);wrap.append(head);const travel=document.createElement('div');travel.className='fader-travel';travel.append(range);wrap.append(travel);
+ const midiId=document.createElement('small');midiId.className='midi-id';
+ const ccId={expression:11,volume:7,modulation:1,pan:10,variationMix:94,reverbSend:91,chorusSend:93}[key];
+ midiId.textContent=ccId?'CC'+ccId:'SYX';if(!ccId)midiId.classList.add('sys');
+ midiId.title=ccId?'MIDI Control Change '+ccId:'Global Yamaha XG SysEx control';wrap.append(midiId);
+ $(holder).append(wrap);
+ range.addEventListener('input',()=>{
+  const n=Number(range.value);store.fx[key]=n;saveCurrentPartValue(key,n);val.textContent=n;save();
+  if(!$('liveCC').checked)return;
+  const ccNums={expression:11,volume:7,modulation:1,reverbSend:91,chorusSend:93};
+  if(key==='variationMix'){
+   if(!variationIsSystem()&&mixAddress(store.fx.variationType)===null)return;
+   const targetChannel=store.channel,system=variationIsSystem(),addr=mixAddress(store.fx.variationType);
+   debounceMidi(`${targetChannel}-${key}`,130,()=>[system?[ccAt(targetChannel,94,n),`CH${targetChannel} Variation send CC94`]:[xg(addr,n,0),'GLOBAL Insertion dry/wet (parameter 10)']]);
+  }else if(key in ccNums){const targetChannel=store.channel;debounceMidi(`${targetChannel}-${key}`,55,()=>[[ccAt(targetChannel,ccNums[key],n),`CH${targetChannel} CC${ccNums[key]} ${key}`]]);}
+  else if(key==='pan'){if(store.channel!==1){const targetChannel=store.channel;debounceMidi(`${targetChannel}-pan`,55,()=>[[ccAt(targetChannel,10,n),`CH${targetChannel} CC10 Pan`]]);}}
+  else if(key==='reverbTime'||key==='reverbReturn'){
+   const addr={reverbTime:0x02,reverbReturn:0x0C}[key];debounceMidi(key,150,()=>[[xg(addr,n),`Reverb ${key}`]]);
+  }else if(key==='chorusRate'||key==='chorusDepth'||key==='chorusReturn'){
+   const addr={chorusRate:0x22,chorusDepth:0x23,chorusReturn:0x2C}[key];debounceMidi(key,150,()=>[[xg(addr,n),`Chorus ${key}`]]);
+  }
+ });
+}
+const FADER_FULL_LABELS={expression:'Expression (CC11)',volume:'Volume (CC7)',modulation:'Vibrato / modulation (CC1)',pan:'GM instrument pan (CC10)',variationMix:'Variation mix / send',reverbSend:'Reverb send (CC91)',reverbTime:'Reverb time',reverbReturn:'Reverb return',chorusSend:'Chorus send (CC93)',chorusRate:'Chorus rate',chorusDepth:'Chorus depth',chorusReturn:'Chorus return'};
+const VOICE=[['expression','EXPR'],['volume','VOL'],['modulation','VIB'],['pan','PAN'],['variationMix','VAR']];
+function selectVariation(kind){
+ if(!PROCESSOR_METADATA[kind])kind='off';
+ store.fx.variationType=kind==='distHard'?'dist':kind;
+ store.fx.variationRoute='SYSTEM';
+ loadPartToFx();save();refreshFx();renderChain();
+ if($('liveCC').checked)debounceMidi('variationType',75,()=>variationMessages());
+ tell('fxStatus',isConnected()?`Selected ${lookupType('variation',kind)[1]} — applying MIDI settings.`:'Selection saved locally; connect MIDI to send it.');
+}
+function initFx(){
+ for(const key of ['procAttack','procRelease','procRatio','procOutput']){
+  const [min,max]=COMP_RANGES[key];
+  const container=document.createElement('div');container.className='control fader proc-fader';
+  const head=document.createElement('div');head.className='ctrlhead';
+  const label=document.createElement('label');label.htmlFor=key;label.textContent=COMP_LABELS[key];
+  label.title={procAttack:'Compressor Attack (1–40 ms)',procRelease:'Compressor Release (10–680 ms)',procRatio:'Compressor Ratio (1:1–20:1)',procOutput:'Compressor Output Level (standalone algorithm)'}[key];
+  const number=document.createElement('span');number.className='num';number.id='v-'+key;
+  head.append(label,number);const travel=document.createElement('div');travel.className='fader-travel';
+  const input=document.createElement('input');input.type='range';input.id=key;input.min=min;input.max=max;input.value=store.fx[key];input.setAttribute('aria-label',label.title);
+  travel.append(input);const id=document.createElement('small');id.className='midi-id sys';id.textContent='SYX';id.title='Yamaha XG SysEx parameter';
+  container.append(head,travel,id);$('compressorControls').append(container);
+ }
+ VOICE.forEach(([key,label])=>sliderUi('voiceControls',key,label));
+ sliderUi('reverbControls','reverbSend','REV');sliderUi('reverbControls','reverbTime','TIME',0,69);sliderUi('reverbControls','reverbReturn','RRET');
+ sliderUi('chorusControls','chorusSend','CHOR');sliderUi('chorusControls','chorusRate','RATE');sliderUi('chorusControls','chorusDepth','DPTH');sliderUi('chorusControls','chorusReturn','CRET');
+ fillTypeSelect('reverbType','reverb');fillTypeSelect('chorusType','chorus');fillTypeSelect('variationType','variation');
+ for(const id of ['reverbType','chorusType'])$(id).addEventListener('change',()=>{
+  store.fx[id]=$(id).value;save();updateAuxFaders();
+  if($('liveCC').checked)debounceMidi(id,70,()=>id==='reverbType'?reverbMessages():chorusMessages());
+ });
+ $('variationType').addEventListener('change',()=>selectVariation($('variationType').value));
+ $('bpm').addEventListener('change',()=>setMasterBpm($('bpm').value));
+ $('noteDiv').addEventListener('change',()=>{store.fx.noteDiv=Number($('noteDiv').value);save();delayDescription();scheduleTimingUpdate();});
+ for(const key of ['procDrive',...COMP_KEYS]){
+  $(key).value=store.fx[key];$(key).addEventListener('input',()=>{
+   store.fx[key]=Number($(key).value);$('v-'+key).textContent=$(key).value;save();
+   if($('liveCC').checked){debounceMidi(key,160,()=>variationParameterMessages(key));}
+  });
+ }
+ refreshFx();
+}
+function refreshFx(){renderEq();for(const [key] of VOICE.concat([['reverbSend'],['reverbTime'],['reverbReturn'],['chorusSend'],['chorusRate'],['chorusDepth'],['chorusReturn']])){const range=$(`s-${key}`);if(range){range.value=store.fx[key];$(`v-${key}`).textContent=store.fx[key];}}for(const key of ['procDrive',...COMP_KEYS]){$(key).value=store.fx[key];$('v-'+key).textContent=store.fx[key];}
+ for(const id of ['reverbType','chorusType','variationType'])$(id).value=store.fx[id];$('bpm').value=store.fx.bpm;$('noteDiv').value=String(store.fx.noteDiv);delayDescription();renderQuickFx();updateAuxFaders();}
+function updateAuxFaders(){
+ for(const [group,type,keys] of [['reverbControls','reverbType',['reverbSend','reverbTime','reverbReturn']],['chorusControls','chorusType',['chorusSend','chorusRate','chorusDepth','chorusReturn']]]){
+  const off=store.fx[type]==='off';for(const key of keys){const el=$(`s-${key}`);if(!el)continue;el.disabled=off;el.closest('.fader').classList.toggle('is-disabled',off);}
+ }
+}
+const variationIsSystem=()=>isSystemVariation();
+function renderQuickFx(){const kind=store.fx.variationType,meta=processorMeta();$('mixInfo').textContent=`MIX CH ${store.channel} · EXPR / VOL / VIB / PAN / REV / CHOR are per-channel; remaining FX controls are shared. · `+(kind==='off'?'Variation effect is bypassed.':variationIsSystem()?'VAR controls CC94 SEND for this mixer channel (and selected route is SYSTEM).':mixAddress(kind)!==null?'VAR FX MIX controls this algorithm’s hardware Dry/Wet parameter.':'No verified Dry/Wet setting for this algorithm. VAR FX MIX is disabled.');
+ for(const b of document.querySelectorAll('[data-quick]'))b.classList.toggle('active',b.dataset.quick===kind);
+ const thr=$('procThreshold');thr.min=79;thr.max=121;
+ if(Number(thr.value)<Number(thr.min)||Number(thr.value)>Number(thr.max)){store.fx.procThreshold=clamp(store.fx.procThreshold,Number(thr.min),Number(thr.max));thr.value=store.fx.procThreshold;$('v-procThreshold').textContent=thr.value;}
+ const panEl=$('s-pan');panEl.disabled=store.channel===1;panEl.closest('.fader').classList.toggle('is-disabled',store.channel===1);
+ const driveOn=meta.driveAddr!==undefined;$('procDrive').disabled=!driveOn;$('procDrive').closest('.control').classList.toggle('inactive',!driveOn);
+ $('driveNote').textContent=driveOn?'Drive active (SysEx)':'Drive not used by selected FX';
+ const cmp=compParameterMap();
+ for(const id of COMP_KEYS){const enabled=!!cmp[id];const el=$(id);el.disabled=!enabled;el.closest('.control').classList.toggle('inactive',!enabled);}
+ $('compressNote').textContent=!!cmp.procThreshold?'Compressor controls active':'Compressor not used by this FX';
+ const mix=$('s-variationMix');const canMix=variationIsSystem()||mixAddress(kind)!==null;mix.disabled=!canMix;mix.closest('.fader').classList.toggle('is-disabled',!canMix);
+}
+const NOTE_OPTIONS=[['0.25','1/16'],['0.3333333333333333','1/8 triplet'],['0.5','1/8'],['0.75','Dotted 1/8'],['1','1/4'],['1.5','Dotted 1/4'],['2','1/2'],['4','1/1']];
+const hardwareTimeLimit={delay:1486,echo:355,cross:355,distdelay:1486,overdelay:1486,compdistdelay:1486,compoverdelay:1486};
+const musicalMs=div=>60000/clamp(store.fx.bpm,35,300)*Number(div);
+function timingCheck(kind,division){const ms=musicalMs(division),max=hardwareTimeLimit[kind]||1486;return {ms,max,ok:ms<=max};}
+function timingLabel(kind,division){const t=timingCheck(kind,division);return `${t.ms.toFixed(1)} ms — ${t.ok?'within':'EXCEEDS'} the ${t.max} ms Yamaha XG ${kind} limit${t.ok?'':'. Cannot send this exact timing to Miku.'}`;}
+function setMasterBpm(value){store.fx.bpm=clamp(value,35,300);$('bpm').value=store.fx.bpm;save();delayDescription();renderChain();scheduleTimingUpdate();}
+function xgTimeWord(ms){const value=clamp(Math.round(ms*10),1,16383);return [(value>>7)&127,value&127];}
+function delayDescription(){const kind=store.fx.variationType;const show=DELAY_FX.includes(kind);const el=$('delayInfo');el.textContent=show?timingLabel(kind,store.fx.noteDiv)+(COMBO_WITH_DELAY.includes(kind)?' · combo timing cannot yet be safely controlled; this tempo stays stored locally':''):'Tempo settings are saved globally and will be used when you select an applicable delay/echo algorithm.';el.style.color=show&&!timingCheck(kind,store.fx.noteDiv).ok?'#ffc47d':'';}
+function liveCcMessages(){let a=[['expression',11],['volume',7],['modulation',1],['reverbSend',91],['chorusSend',93],...(store.channel===1?[]:[['pan',10]])].map(([key,num])=>[cc(num,store.fx[key]),`CH${store.channel} CC${num}`]);if(variationIsSystem())a.push([cc(94,store.fx.variationMix),'Variation send']);return a;}
+function applyCC(){const nums={expression:11,volume:7,modulation:1,reverbSend:91,chorusSend:93,pan:10};let n=0;for(const [key,ccNo] of Object.entries(nums))if((key!=='pan'||store.channel!==1)&&send(cc(ccNo,store.fx[key]),`CC${ccNo} ${key}`))n++;if(variationIsSystem()){if(send(cc(94,store.fx.variationMix),'Variation send CC94'))n++;}else {const addr=mixAddress(store.fx.variationType);if(addr!==null&&send(xg(addr,store.fx.variationMix,0),'Variation insertion dry/wet'))n++;}tell('fxStatus',`Sent ${n} level messages on channel ${store.channel}.`);return n;}
+function reverbMessages(){const t=lookupType('reverb',store.fx.reverbType);return [[xg(0x00,t[2],t[3]),'Reverb type'],[xg(0x02,clamp(store.fx.reverbTime,0,69)),'Reverb time'],[xg(0x0C,clamp(store.fx.reverbReturn,0,127)),'Reverb return']];}
+function chorusMessages(){const t=lookupType('chorus',store.fx.chorusType);return [[xg(0x20,t[2],t[3]),'Chorus type'],[xg(0x22,clamp(store.fx.chorusRate,0,127)),'Chorus rate'],[xg(0x23,clamp(store.fx.chorusDepth,0,127)),'Chorus depth'],[xg(0x2C,clamp(store.fx.chorusReturn,0,127)),'Chorus return']];}
+function variationMessages(){store.fx.variationRoute='SYSTEM';const kind=store.fx.variationType,t=lookupType('variation',kind),meta=processorMeta();
+ const exactTime=!(DELAY_FX.includes(kind)&&!timingCheck(kind,store.fx.noteDiv).ok);
+ const messages=[[xg(0x40,t[2],t[3]),'Variation algorithm '+t[1]]];
+ if(kind==='off'){messages.push([xg(0x5A,0),'Variation INSERT mode'],[xg(0x5B,127),'Variation target OFF'],[cc(94,0),'Variation send OFF']);return messages;}
+ if(variationIsSystem()){
+  messages.push([xg(0x5A,1),'Variation SYSTEM mode'],[xg(0x56,64),'Variation return 0dB']);
+  // CC94 is part-specific: always include Miku's stored CH1 amount, even while editing GM CH2-16.
+  messages.push([ccAt(1,94,clamp(store.channels[0].variationSend,0,127)),'Miku vocal CH1 variation send CC94']);
+  if(store.channel!==1)messages.push([ccAt(store.channel,94,clamp(currentPart().variationSend,0,127)),`CH${store.channel} variation send CC94`]);
+ } else {
+  messages.push([xg(0x5A,0),'Variation INSERT mode'],[xg(0x5B,0),'Variation target Miku voice: PART 1']);
+  const addr=mixAddress(kind);if(addr!==null)messages.push([xg(addr,clamp(store.fx.variationMix,1,127),0),'Variation Dry/Wet parameter 10']);
+ }
+ // Parameter values use their own layouts, independent of SYSTEM/INSERT routing.
+ if(meta.driveAddr!==undefined)messages.push([xg(meta.driveAddr,0,clamp(store.fx.procDrive,0,127)),'Distortion / overdrive drive']);
+ // The compressor uses different XG parameter addresses for standalone vs combo effects.
+ for(const key of ['procAttack','procRelease','procThreshold','procRatio','procOutput']){
+  const message=compParameterMessage(key);if(message)messages.push(message);
+ }
+ if(DELAY_SYSTEM_FX.includes(kind)&&exactTime)messages.push(...variationTimingMessages());
+ // Combination delay time addresses differ by algorithm: don't overwrite Drive/Threshold.
+
+ return messages;
+}
+// Serialize XG SysEx batches; MIDI UI updates are coalesced during slider gestures.
+let midiQueue=Promise.resolve();
+function queueMidi(factory,status){
+ if(!isConnected())return Promise.resolve(0);
+ midiQueue=midiQueue.catch(err=>log('MIDI queue recovered: '+err.message,'err')).then(async()=>{
+  const messages=typeof factory==='function'?factory():factory;
+  const n=await sendMessages(messages);
+  if(status&&n)tell('fxStatus',status);
+  return n;
+ });
+ return midiQueue;
+}
+function debounceMidi(key,wait,factory){clearTimeout(liveTimer[key]);liveTimer[key]=setTimeout(()=>queueMidi(factory),wait);}
+function variationParameterMessages(key){const meta=processorMeta();
+ if(key==='procDrive'&&meta.driveAddr!==undefined)return [[xg(meta.driveAddr,0,clamp(store.fx.procDrive,0,127)),'FX drive']];
+ if(COMP_KEYS.includes(key)){const message=compParameterMessage(key);return message?[message]:[];}
+ return [];
+}
+function scheduleTimingUpdate(){
+ if(!DELAY_FX.includes(store.fx.variationType)||!$('liveCC').checked)return;
+ if(COMBO_WITH_DELAY.includes(store.fx.variationType)){
+  tell('fxStatus','Combo delay time uses algorithm-specific parameters; global BPM saved, automatic timing not sent for this combo yet.');return;
+ }
+ if(!timingCheck(store.fx.variationType,store.fx.noteDiv).ok){tell('fxStatus','Selected BPM/beat division exceeds the hardware range; no timing was sent.');return;}
+ debounceMidi('timing',180,()=>variationTimingMessages());
+}
+function variationTimingMessages(){const kind=store.fx.variationType;if(!variationIsSystem()||!timingCheck(kind,store.fx.noteDiv).ok)return [];
+ const word=xgTimeWord(musicalMs(store.fx.noteDiv));const addrs=kind==='delay'?[0x42,0x44,0x46,0x48]:kind==='echo'?[0x42,0x46,0x4C,0x4E]:[0x42,0x44];return addrs.map(a=>[xg(a,...word),`${kind} time`]);
+}
+async function sendMessages(messages){let successes=0;for(const [bytes,label] of messages){if(send(bytes,label))successes++;await new Promise(r=>setTimeout(r,45));}return successes;}
+// Tested by user on the NSX-39: SYSTEM mode works for Distortion (v1.4) and
+// Compressor (v1.5). A test must update application state as well as send MIDI;
+// previous TEST DIST changed hardware only and was immediately overwritten.
+async function diagnoseFx(kind){
+ if(!isConnected()||!sysexAllowed){tell('fxStatus','Connect a SysEx-capable MIDI OUT to test.');return;}
+ for(const name of ['variationType','fxRoute','procDrive','procThreshold','variationMix'])clearTimeout(liveTimer[name]);
+ const isDist=kind==='dist';
+ store.fx.variationType=isDist?'dist':'compressor';
+ store.fx.variationRoute='SYSTEM';
+ if(isDist)store.fx.procDrive=105;
+ else store.fx.procThreshold=79;
+ // Force an audible effect send for CH1; keep all other channel mixer levels.
+ store.channels[0].variationSend=127;
+ loadPartToFx();save();refreshFx();renderChain();
+ const messages=variationMessages();
+ const sent=await queueMidi(messages);
+ tell('fxStatus',`Sent ${sent}/${messages.length} ${isDist?'Distortion HARD1':'Compressor'} in SYSTEM mode, with CH1 CC94 at 127. The dropdown and faders now match the hardware. Test at a low listening level.`);
+}
+
+async function applyFx(){if(DELAY_FX.includes(store.fx.variationType)&&!timingCheck(store.fx.variationType,store.fx.noteDiv).ok)tell('fxStatus','Requested beat division is too long; selecting effect with existing device timing instead.');if(!isConnected()){tell('fxStatus','Connect your MIDI output first.');return;}let count=0;count+=await sendMessages(reverbMessages());count+=await sendMessages(chorusMessages());count+=await sendMessages(variationMessages());count+=applyCC();tell('fxStatus',`Applied ${count} MIDI messages. Confirm results by ear; not yet hardware-tested.`);}
+function setPage(id){document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('current',el.dataset.tab===id));document.querySelectorAll('.page').forEach(el=>el.classList.toggle('current',el.id===`page-${id}`));}
+// NSX-39 128-value kana/phonetic table, transcribed from the official customization guide.
+const phonemes=[
+'あ','い','う','え','お','か','き','く','け','こ','が','ぎ','ぐ','げ','ご','ぎゃ','ぎゅ','ぎょ','ざゃ','ざゅ','ざょ','さ','すぃ','す','せ','そ','ざ','ずぃ','ず','ぜ','ぞ','しゃ',
+'し','しゅ','しぇ','しょ','じゃ','じ','じゅ','じぇ','じょ','た','てぃ','とう','て','と','だ','でぃ','どう','で','ど','でゅ','でゃ','ちゃ','ち','ちゅ','ちぇ','ちょ','つぁ','つぃ','つ','つぇ','つぉ','な',
+'に','ぬ','ね','の','にゃ','にゅ','にょ','は','ひ','ふ','へ','ほ','ば','び','ぶ','べ','ぼ','ぱ','ぴ','ぷ','ぺ','ぽ','ひゃ','ひゅ','ひょ','びゃ','びゅ','びょ','ぴゃ','ぴゅ','ぴょ','ふぁ',
+'ふぃ','ふゅ','ふぇ','ふぉ','ま','み','む','め','も','みゃ','みゅ','みょ','や','ゆ','よ','ら','り','る','れ','ろ','りゃ','りゅ','りょ','わ','うぃ','うぇ','うぉ','ん','ん','ん','ん','ん'
+];
+const kanaMap=new Map(phonemes.map((p,i)=>[p,i]));kanaMap.set('を',0x7A);kanaMap.set('づ',0x1C);kanaMap.set('ぢ',0x25);kanaMap.set('っ',null);kanaMap.set('ー',null);kanaMap.set('ゐ',0x78);kanaMap.set('ゑ',0x79);
+// Do not merge 'とう' / 'どう' by default: separate mora align with separate sequencer notes.
+kanaMap.set('ん',0x7B);
+const longest=[...kanaMap.keys()].filter(k=>k!=='とう'&&k!=='どう').sort((a,b)=>b.length-a.length);
+function encodeLyrics(text){const cleaned=String(text).normalize('NFKC').replace(/[\u30a1-\u30f6]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60));const codes=[],unsupported=[];for(let i=0;i<cleaned.length;){const ch=cleaned[i];if(/[\s\u3000、。，．！!？?・,.;:「」『』()（）]/.test(ch)){i++;continue;}const match=longest.find(k=>cleaned.startsWith(k,i));if(match){const code=kanaMap.get(match);if(code!==null)codes.push(code);else unsupported.push(match);i+=match.length;}else{unsupported.push(ch);i++;}}return {codes,unsupported:[...new Set(unsupported)]};}
+function decodeLyrics(bytes){return bytes.map(b=>phonemes[b]||'？').join('');}
+function renderSlotButtons(){const parent=$('slots');parent.innerHTML='';for(let i=0;i<16;i++){const b=document.createElement('button');b.className='slot';b.dataset.slot=i;if(scanState[i])b.classList.add('read-'+scanState[i]);if(i===store.selected)b.classList.add('active');if(store.slots[i].text.trim())b.classList.add('filled');b.textContent=String(i).padStart(2,'0');b.title=i===0?'Temporary RAM slot':`Flash slot ${i}${scanState[i]?' · '+scanState[i]:''}`;b.onclick=()=>{commitLyric();store.selected=i;save();refreshLyric();};parent.append(b);}}
+function commitLyric(){store.slots[store.selected]={name:$('slotName').value,text:$('lyricText').value};save();}
+function refreshLyric(){renderSlotButtons();const slot=store.selected;const obj=store.slots[slot];$('slotName').value=obj.name;$('lyricText').value=obj.text;$('slotInfo').textContent=slot===0?'00 · Temporary RAM':`${String(slot).padStart(2,'0')} · Flash memory`;$('writeSlot').textContent=slot===0?'Send to RAM slot 00':`Write flash slot ${String(slot).padStart(2,'0')}`;updatePreview();}
+function updatePreview(){const {codes,unsupported}=encodeLyrics($('lyricText').value);$('lyricCount').textContent=`${codes.length} / 64 phonemes`+(unsupported.length?` · Unsupported: ${unsupported.join(' ')}`:'')+(codes.length>64?' · TOO LONG':'');$('lyricCount').style.color=unsupported.length||codes.length>64?'#ffc47d':'#a5b5ca';$('sysexPreview').textContent=hex(miku(0x0A,store.selected,...codes));renderSlotButtons();}
+function validLyric(){const obj=encodeLyrics($('lyricText').value);if(obj.unsupported.length){tell('lyricStatus',`Not sent. Unsupported characters: ${obj.unsupported.join(' ')}. Remove or replace them.`);return null;}if(obj.codes.length<1){tell('lyricStatus','Not sent. Enter at least one supported syllable.');return null;}if(obj.codes.length>64){tell('lyricStatus','Not sent. Limit is 64 phonemes per transfer.');return null;}return obj.codes;}
+function writeSlot(){commitLyric();const codes=validLyric();if(!codes)return;const slot=store.selected;if(slot>0&&!confirm(`Overwrite Miku's flash lyric slot ${String(slot).padStart(2,'0')}? This replaces its stored lyric and briefly interrupts MIDI.`))return;const ok=send(miku(0x0A,slot,...codes),`Write lyric slot ${slot}`);tell('lyricStatus',ok?`Sent ${codes.length} phonemes to slot ${String(slot).padStart(2,'0')}. ${slot===0?'Temporary RAM':'Flash write: allow time to finish.'}`:'Not sent. Connect a SysEx-capable MIDI output first.');}
+function selectHardwareSlot(){const slot=store.selected;const ok=send(miku(0x0D,0x09,0x03,0x00,slot),`Select lyric slot ${slot}`);tell('lyricStatus',ok?`Sent slot selection ${String(slot).padStart(2,'0')}.`:'Not sent.');}
+function requestLyricSlot(slot,timeoutMs=2400){return new Promise((resolve,reject)=>{if(!input)return reject(Error('Select MIDI input with return path from Miku.'));if(pendingRead)return reject(Error('Another read is pending.'));const req={slot,started:Date.now(),resolve,reject,timer:null};pendingRead=req;req.timer=setTimeout(()=>{if(pendingRead===req)pendingRead=null;reject(Error(`Slot ${String(slot).padStart(2,'0')}: no SysEx reply.`));},timeoutMs);if(!send(miku(0x0F,slot),`Read lyric slot ${slot}`)){clearTimeout(req.timer);pendingRead=null;reject(Error('Could not send lyric read request.'));}});}
+async function readHardwareSlot(){try{const slot=store.selected;tell('lyricStatus',`Requesting slot ${String(slot).padStart(2,'0')}…`);await requestLyricSlot(slot);tell('lyricStatus',`Read slot ${String(slot).padStart(2,'0')} from Miku.`);}catch(e){tell('lyricStatus',e.message);}}
+let readingAll=false, scanAbort=false, scanTimer=null, lastAutoRoute='', scanState={};
+function setFlashSummary(message){$('flashSummary').textContent=message;$('readProgress').textContent=message;}
+function markFlashSlot(slot,status){scanState[slot]=status;const el=document.querySelector(`#slots button[data-slot="${slot}"]`);if(el){el.classList.remove('read-ok','read-fail','read-pending');el.classList.add('read-'+status);el.title=`Flash ${String(slot).padStart(2,'0')} · ${status}`;}}
+function cancelRead(reason){scanAbort=true;clearTimeout(scanTimer);scanTimer=null;const req=pendingRead;if(req){pendingRead=null;clearTimeout(req.timer);req.reject(Error(reason||'MIDI port changed.'));}}
+async function readAllFlash(options={}){
+ if(readingAll)return;
+ if(!isConnected()||!input||input.state!=='connected'||!sysexAllowed){setFlashSummary('FLASH READ NEEDS CONNECTED MIDI IN + OUT WITH SYSEX.');return;}
+ readingAll=true;scanAbort=false;$('readAll').disabled=true;let count=0,failed=[];
+ // A late response cannot be tagged with a slot number: keep requests sequential.
+ // Give slow USB-MIDI bridges one retry before continuing to the next slot.
+ try{commitLyric();scanState={};for(let slot=1;slot<=15;slot++){
+  if(scanAbort)break;
+  markFlashSlot(slot,'pending');let ok=false;
+  for(let attempt=1;attempt<=2;attempt++){
+   if(scanAbort)break;
+   setFlashSummary(`READING FLASH ${String(slot).padStart(2,'0')}/15 · ${count} OK · attempt ${attempt}/2`);
+   try{await requestLyricSlot(slot,2300);ok=true;count++;markFlashSlot(slot,'ok');break;}
+   catch(e){log(`Flash read ${String(slot).padStart(2,'0')} attempt ${attempt}: ${e.message}`,'err');}
+   // A small quiet period makes it less likely a late reply is assigned to the next request.
+   await new Promise(r=>setTimeout(r,180));
+  }
+  if(!ok){failed.push(slot);markFlashSlot(slot,'fail');}
+  await new Promise(r=>setTimeout(r,130));
+ }
+ if(scanAbort){setFlashSummary(`READ INTERRUPTED · ${count}/15 read · ${failed.length} failed`);}
+ else{setFlashSummary(`FLASH READ ${count}/15 OK${failed.length?' · FAILED: '+failed.map(n=>String(n).padStart(2,'0')).join(', '):' · COMPLETE'}`);}
+ tell('lyricStatus',failed.length?`Only ${count} of 15 flash slots replied. Failed slots are marked !; check the MIDI IN return path and run Read All again.`:'Read all 15 flash slots; export a JSON backup to save them.');
+ }finally{readingAll=false;$('readAll').disabled=false;}
+}
+function scheduleAutoFlashRead(){
+ if(!midi||!isConnected()||!input||input.state!=='connected'||!sysexAllowed){
+  if(!readingAll)setFlashSummary(!sysexAllowed&&midi?'SYSEX PERMISSION REQUIRED TO READ FLASH.':'CONNECT MIDI IN + OUT TO AUTO-READ FLASH 01–15.');return;
+ }
+ if(!$('autoFlash').checked)return;
+ const route=output.id+'|'+input.id;
+ if(lastAutoRoute===route)return;
+ clearTimeout(scanTimer);
+ scanTimer=setTimeout(()=>{if(output?.id+'|'+input?.id!==route)return;lastAutoRoute=route;void readAllFlash({automatic:true});},400);
+}
+function onMidi(e){const bytes=Array.from(e.data);if(bytes.length<7||bytes[0]!==0xF0||bytes.slice(1,5).join(',')!=='67,121,9,17')return;const op=bytes[5];log(`RX NSX-39 reply: ${hex(bytes)}`,'good');if(op===0x1F&&pendingRead){const req=pendingRead;pendingRead=null;clearTimeout(req.timer);const length=bytes[6];if(bytes.length<8+length){req.reject(Error(`Incomplete lyric response for slot ${String(req.slot).padStart(2,'0')}.`));return;}const values=bytes.slice(7,7+length).filter(v=>v>=0&&v<128);const text=decodeLyrics(values);store.slots[req.slot]={...store.slots[req.slot],text};save();if(store.selected===req.slot)refreshLyric();req.resolve({slot:req.slot,length:values.length,text});}else if(op===0x1E){log(`Active lyric slot ${bytes[6]}, position ${bytes[7]}`,'good');}else if(op===0x21){log(`Flash write status: ${bytes[6]===0?'complete':bytes[6]===1?'busy':'error'}`,bytes[6]===2?'err':'good');}}
+// iOS browser bridges may leave a SysEx permission request pending. Show progress
+// promptly, cap the wait, and expose a CC-only diagnostic to isolate the issue.
+let connectionPromise=null;
+async function midiPermissionRequest(opts){
+ let timer;
+ try{return await Promise.race([
+   navigator.requestMIDIAccess(opts),
+   new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('MIDI permission request timed out (12 seconds)')),12000);})
+ ]);}finally{clearTimeout(timer);}
+}
+async function connectMidi(forceBasic=false){
+ if(connectionPromise){log('A MIDI permission request is still in progress.','err');return connectionPromise;}
+ const requestBasic=forceBasic===true;
+ $('connStatus').textContent=requestBasic?'Testing CC MIDI…':'Requesting MIDI + SysEx…';
+ $('connect').textContent='CONNECTING…';
+ connectionPromise=(async()=>{
+ if(window.isSecureContext===false){log('This page is not a secure context. Open the HTTPS GitHub Pages URL, not a GitHub file preview.','err');}
+ if(typeof navigator.requestMIDIAccess!=='function'){
+  $('connStatus').textContent='Web MIDI API missing';
+  log('navigator.requestMIDIAccess is not available in this browser tab. Open the HTTPS GitHub Pages URL inside Web MIDI Browser by Takashi Mizuhiki. In the app settings, enable SysEx permission.','err');
+  return;
+ }
+ const ask=async sysex=>{
+  log(`Requesting Web MIDI (${sysex?'with SysEx':'CC only'})…`);
+  return await midiPermissionRequest({sysex});
+ };
+ try{
+  if(requestBasic){midi=await ask(false);sysexAllowed=false;}
+  else{
+   try{midi=await ask(true);sysexAllowed=(typeof midi.sysexEnabled==='boolean')?midi.sysexEnabled:true; if(typeof midi.sysexEnabled!=='boolean')log('Browser did not expose sysexEnabled; treating successful SysEx request as enabled.');}
+   catch(e){
+    log(`SysEx request failed: ${e.name||'Error'}: ${e.message}. Trying basic MIDI.`, 'err');
+    $('connStatus').textContent='SysEx unavailable; trying CC…';
+    midi=await ask(false);sysexAllowed=false;
+   }
+  }
+ }catch(err){
+  log(`MIDI connection failed: ${err.name||'Error'}: ${err.message}`, 'err');
+  $('connStatus').textContent='MIDI request failed — see log';
+  return;
+ }
+ try{
+   midi.onstatechange=()=>{try{populatePorts()}catch(e){log('MIDI port update failed: '+e.message,'err');}};
+   populatePorts();
+   const countOut=enumeratePorts(midi.outputs).filter(p=>p&&p.state!=='disconnected').length;
+   const countIn=enumeratePorts(midi.inputs).filter(p=>p&&p.state!=='disconnected').length;
+   log(`MIDI bridge OK: ${countOut} outputs / ${countIn} inputs, SysEx ${sysexAllowed?'ON':'OFF'}.`,countOut?'good':'err');
+   if(!countOut){$('connStatus').textContent='MIDI connected; NO OUTPUT PORTS';log('No output ports detected by iOS. Check that the H2MIDI appears in another MIDI app and that Lightning USB data is connected.','err');}
+   else if(!sysexAllowed){$('connStatus').textContent=`${countOut} OUT / ${countIn} IN · CC ONLY`;log('CC TEST can discover devices, but YOKOVOCO effects/lyric SysEx require full CONNECT MIDI permission.','err');}
+   else $('connStatus').textContent=`${countOut} OUT / ${countIn} IN · SYSEX`;
+   $('connect').textContent='RECONNECT MIDI';
+ }catch(err){
+   log(`MIDI enumeration failed: ${err.name||'Error'}: ${err.message}`,'err');
+   $('connStatus').textContent='Port listing error — see log';
+ }
+ })();try{await connectionPromise;}finally{connectionPromise=null;if($('connect').textContent==='CONNECTING…')$('connect').textContent='CONNECT MIDI';}
+}
+// Some older iOS Web MIDI bridges return a MIDIPortMap with incomplete Map methods.
+function enumeratePorts(collection){
+ if(!collection)return [];
+ try{if(typeof collection.values==='function')return Array.from(collection.values());}catch(e){log('Port iterator error: '+e.message,'err');}
+ if(Array.isArray(collection))return collection;
+ const ports=[];
+ if(typeof collection.forEach==='function'){
+  try{collection.forEach(p=>ports.push(p));return ports;}catch(e){log('Port forEach error: '+e.message,'err');}
+ }
+ return ports;
+}
+function portById(collection,id){
+ if(!id)return null;
+ try{if(collection&&typeof collection.get==='function')return collection.get(id)||null;}catch(e){}
+ return enumeratePorts(collection).find(p=>p&&p.id===id)||null;
+}
+function populatePorts(){if(!midi)return;
+ const out=$('output'),inp=$('input'),priorOut=output?.id||'',priorIn=input?.id||'';
+ const oldOut=out.value||store.outputId||'',oldIn=inp.value||store.inputId||'';
+ const outputs=enumeratePorts(midi.outputs).filter(p=>p&&p.state!=='disconnected');
+ const inputs=enumeratePorts(midi.inputs).filter(p=>p&&p.state!=='disconnected');
+ out.innerHTML='<option value="">Choose MIDI output…</option>';inp.innerHTML='<option value="">Choose MIDI input…</option>';
+ for(const p of outputs)out.add(new Option(p.name||'Unnamed MIDI out',p.id));
+ for(const p of inputs)inp.add(new Option(p.name||'Unnamed MIDI in',p.id));
+ if(outputs.some(p=>p.id===oldOut))out.value=oldOut;else if(outputs.length===1)out.value=outputs[0].id;
+ if(inputs.some(p=>p.id===oldIn))inp.value=oldIn;else if(inputs.length===1)inp.value=inputs[0].id;
+ output=portById(midi.outputs,out.value);input=portById(midi.inputs,inp.value);
+ for(const port of enumeratePorts(midi.inputs))port.onmidimessage=null;
+ if(input)input.onmidimessage=onMidi;
+ if(priorOut!==output?.id||priorIn!==input?.id){cancelRead('MIDI route changed');lastAutoRoute='';}
+ store.outputId=out.value;store.inputId=inp.value;save();
+ const ready=isConnected();$('connStatus').textContent=ready?`OUT ready${sysexAllowed?' · SysEx':' · CC only'}`:'Choose MIDI OUT';
+ $('led').classList.toggle('on',ready);log(`Ports: ${outputs.length} MIDI outputs, ${inputs.length} MIDI inputs`);
+ scheduleAutoFlashRead();
+}
+function showPresets(){const all=store.presets;const g=$('presetGrid');g.innerHTML='';for(const p of all){const card=document.createElement('article');card.className='presetcard';const info=document.createElement('div');const title=document.createElement('strong');title.textContent=p.name;const sub=document.createElement('small');sub.textContent='YOUR PRESET'+` · ${p.fx.reverbType} / ${p.fx.chorusType}`;info.append(title,sub);card.append(info);const actions=document.createElement('div');actions.className='buttons';const load=document.createElement('button');load.className='btn small';load.textContent='Load';load.onclick=()=>{applyPresetData(p);save();refreshFx();renderChain();setPage('fx');tell('fxStatus',`Loaded ${p.name}. Sending current FX to Miku.`);void queueMidi(()=>[...reverbMessages(),...chorusMessages(),...variationMessages(),...liveCcMessages()]);};actions.append(load);{const del=document.createElement('button');del.className='btn small warn';del.textContent='Delete';del.onclick=()=>{if(confirm(`Delete local preset “${p.name}”?`)){store.presets=store.presets.filter(x=>x.id!==p.id);save();showPresets();}};actions.append(del);}card.append(actions);g.append(card);}refreshPresetDropdown();}
+function refreshPresetDropdown(){const s=$('mainPresetSelect');if(!s)return;const keep=s.value;s.innerHTML='<option value="">LIVE / UNSAVED SETTINGS</option>';store.presets.forEach(p=>s.add(new Option(p.name,p.id)));if([...s.options].some(o=>o.value===keep))s.value=keep;}
+function loadPresetById(id){const p=store.presets.find(x=>x.id===id);if(!p){tell('fxStatus','Choose a preset from your bank.');return false;}applyPresetData(p);save();refreshFx();renderChain();tell('fxStatus',`LOADED / ${p.name} · Applying to Miku when connected.`);void queueMidi(()=>[...reverbMessages(),...chorusMessages(),...variationMessages(),...liveCcMessages()]);return true;}
+function saveNewPreset(){const name=prompt('Name your new preset:','');if(!name||!name.trim())return;const p={id:`user-${Date.now()}-${Math.floor(Math.random()*100000)}`,name:name.trim().slice(0,70),fx:clone(store.fx),channels:clone(store.channels),factory:false};store.presets.push(p);save();showPresets();$('mainPresetSelect').value=p.id;tell('fxStatus',`SAVED / ${p.name} · This preset is local to your browser.`);}
+function download(name,content,mime){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+
+// One variation engine. The algorithm dropdown is the sole hardware selector.
+function renderChain(){}
+function initChain(){}
+
+
+// Experimental XG Multi EQ sends; not proof that NSX-39 implements optional block.
+function multiEqMessage(band,gain){const offsets=[0x01,0x05,0x09,0x0D,0x11];return [0xF0,0x43,0x10,0x4C,0x02,0x40,offsets[band],clamp(gain+64,52,76),0xF7];}
+function renderEq(){
+ if(!Array.isArray(store.fx.eqBands)||store.fx.eqBands.length!==5)store.fx.eqBands=[0,0,0,0,0];
+ for(let i=0;i<5;i++){const r=$('eqBand'+i),v=$('eqValue'+i);if(r){r.value=clamp(store.fx.eqBands[i],-12,12);v.textContent=(store.fx.eqBands[i]>0?'+':'')+store.fx.eqBands[i]+' dB';}}
+ for(const k of ['lowPass','highPass']){$(k).value=store.fx[k]??(k==='lowPass'?64:0);$(k+'Value').textContent=$(k).value;}
+}
+function initEq(){
+ const labels=['LOW','LOW MID','MID','HIGH MID','HIGH'];const grid=$('eqGrid');
+ labels.forEach((label,i)=>{const box=document.createElement('div');box.className='eq-band';box.innerHTML='<label for="eqBand'+i+'">'+label+'</label><output id="eqValue'+i+'">0 dB</output><input type="range" id="eqBand'+i+'" min="-12" max="12" step="1" value="0" aria-label="'+label+' EQ gain">';grid.append(box);$('eqBand'+i).addEventListener('input',()=>{const n=Number($('eqBand'+i).value);store.fx.eqBands[i]=n;save();renderEq();if($('eqTest').checked&&$('liveCC').checked)debounceMidi('eqBand'+i,220,()=>[[multiEqMessage(i,n),'EXPERIMENTAL Multi EQ band '+(i+1)]]);});});
+ $('lowPass').addEventListener('input',()=>{const n=Number($('lowPass').value);store.fx.lowPass=n;save();renderEq();if($('liveCC').checked){const ch=store.channel;debounceMidi('lp'+ch,65,()=>[[ccAt(ch,74,n),'XG LP brightness CC74 CH'+ch+' (voice unverified)']]);}});
+ $('highPass').addEventListener('input',()=>{store.fx.highPass=Number($('highPass').value);save();renderEq();tell('eqStatus','HP position stored locally. No independent hardware HP command is known for the NSX-39 vocal channel.');});
+ $('eqApply').onclick=()=>{if(!$('eqTest').checked){tell('eqStatus','Enable the experimental XG Multi EQ test first.');return;}const messages=store.fx.eqBands.map((v,i)=>[multiEqMessage(i,v),'EXPERIMENTAL XG Multi EQ band '+(i+1)]);void queueMidi(()=>messages,'Sent experimental Multi EQ SysEx; NSX-39 audible support is unverified.');tell('eqStatus','Sent XG Multi EQ test commands; compare audio by ear.');};
+ $('eqFlat').onclick=()=>{store.fx.eqBands=[0,0,0,0,0];save();renderEq();tell('eqStatus','EQ set flat locally. Use SEND 5-BAND EQ TEST with experimental mode enabled to send it.');};
+ renderEq();
+}
+
+function init(){initChain();initEq();document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>setPage(el.dataset.tab)));initFx();$('connect').onclick=()=>connectMidi();$('connectBasic').onclick=()=>connectMidi(true);$('testDist').onclick=()=>diagnoseFx('dist');$('testComp').onclick=()=>diagnoseFx('comp');$('refresh').onclick=()=>midi?populatePorts():connectMidi();$('output').onchange=populatePorts;$('input').onchange=populatePorts;$('autoFlash').onchange=()=>{if($('autoFlash').checked){lastAutoRoute='';scheduleAutoFlashRead();}else{clearTimeout(scanTimer);setFlashSummary('AUTOMATIC FLASH READ OFF. Manual read remains available in Lyrics.');}};$('channel').value=store.channel;$('channel').onchange=()=>switchMixerChannel($('channel').value);$('sendAll').onclick=()=>queueMidi(()=>[...reverbMessages(),...chorusMessages(),...variationMessages(),...liveCcMessages()],'Resynced all current FX settings.');$('syncPart').onclick=()=>queueMidi(()=>liveCcMessages(),`Applied stored MIDI CC values for CH ${store.channel}.`);$('audition').onclick=()=>{const note=69,channel=store.channel-1;if(send([0x90+channel,note,90],'Test note A4'))setTimeout(()=>send([0x80+channel,note,0],'Test note off'),320);};$('panic').onclick=()=>send(cc(123,0),'All notes off CC123');$('lyricText').addEventListener('input',()=>{commitLyric();updatePreview();});$('slotName').addEventListener('input',commitLyric);$('writeSlot').onclick=writeSlot;$('selectSlot').onclick=selectHardwareSlot;$('rewindSlot').onclick=()=>{if(send(miku(0x0D,0x09,0x02,0x00,0x00),'Rewind lyric position'))tell('lyricStatus','Rewound to first phoneme.');};$('readSlot').onclick=readHardwareSlot;$('readAll').onclick=readAllFlash;$('requestStatus').onclick=()=>send(miku(0x0E),'Request current lyric position');$('savePreset').onclick=saveNewPreset;$('mainSave').onclick=saveNewPreset;$('mainLoad').onclick=()=>loadPresetById($('mainPresetSelect').value);$('mainOverwrite').onclick=()=>{const p=store.presets.find(x=>x.id===$('mainPresetSelect').value);if(!p){tell('fxStatus','Choose a saved preset to overwrite.');return;}if(!confirm('Overwrite your preset “'+p.name+'” with these settings?'))return;p.fx=clone(store.fx);p.channels=clone(store.channels);save();showPresets();$('mainPresetSelect').value=p.id;tell('fxStatus','OVERWRITTEN / '+p.name);};$('exportBackup').onclick=()=>download('yokovoco-backup.json',JSON.stringify({version:1,exported:new Date().toISOString(),fx:store.fx,channels:store.channels,slots:store.slots,presets:store.presets},null,2),'application/json');$('importBackup').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.slots)||data.slots.length!==16||!Array.isArray(data.presets))throw Error('Not a valid YOKOVOCO backup.');if(!confirm('Import this backup and replace your local presets and lyrics?'))return;store.slots=data.slots.map(s=>({name:String(s.name||'').slice(0,40),text:String(s.text||'').slice(0,400)}));store.presets=data.presets.filter(p=>p&&typeof p.name==='string'&&typeof p.fx==='object').map(p=>({id:String(p.id||`import-${Date.now()}`),name:p.name.slice(0,70),fx:{...defaultFx,...p.fx},channels:Array.isArray(p.channels)&&p.channels.length===16?p.channels.map(c=>({...initialPart(),...(c||{})})):undefined,factory:false}));store.fx={...defaultFx,...data.fx,variationRoute:'SYSTEM'};if(store.fx.variationType==='distHard')store.fx.variationType='dist';if(Array.isArray(data.channels)&&data.channels.length===16)store.channels=data.channels.map(c=>({...initialPart(),...(c||{})}));else{const cp=currentPart();for(const key of PART_KEYS)if(key!=='variationSend'&&data.fx?.[key]!==undefined)cp[key]=data.fx[key];}loadPartToFx();if(!Array.isArray(store.fx.chain))store.fx.chain=[];save();refreshFx();renderChain();refreshLyric();showPresets();log('Library import succeeded.','good');}catch(err){alert(`Import failed: ${err.message}`);}e.target.value='';};$('clearLog').onclick=()=>{$('log').innerHTML='';midiLog.length=0};$('copyLog').onclick=async()=>{try{await navigator.clipboard.writeText(midiLog.join('\n'));}catch(_){alert('Could not copy. Select the log text manually.');}};refreshLyric();showPresets();log('YOKOVOCO v1.9.2 iOS ready. Enable SysEx in Web MIDI Browser settings, then tap CONNECT MIDI. CC TEST checks basic discovery.');/* iOS: MIDI permissions must be requested from an explicit button tap, not page-load auto-connect. */if(phonemes.length!==128)log(`Internal phoneme table error: ${phonemes.length} entries`,'err');}
+init();
+</script>
+</body></html>
